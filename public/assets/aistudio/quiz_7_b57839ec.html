@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grade 7 Computing Quiz</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f4f2ec;
+  --card: #ffffff;
+  --ink: #1d2430;
+  --muted: #5d6675;
+  --line: #d9d6cc;
+  --accent: #0d5c63;
+  --ok: #1e7a4a;
+  --ok-bg: #e7f4ec;
+  --bad: #b42318;
+  --bad-bg: #fbe9e7;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.wrap { max-width: 680px; margin: 0 auto; padding: 24px 16px 40px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.brand { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.langs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
+.langs button {
+  font: inherit; font-size: 14px; border: none; background: transparent; color: var(--muted);
+  padding: 7px 14px; cursor: pointer;
+}
+.langs button[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 600; }
+.langs button:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+h1, h2 {
+  font-family: "IBM Plex Serif", Georgia, serif;
+  font-weight: 600; line-height: 1.25; text-wrap: balance; margin: 0;
+}
+h1 { font-size: 28px; margin-bottom: 6px; }
+h2 { font-size: 21px; margin-bottom: 16px; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 24px; box-shadow: 0 1px 2px rgba(29, 36, 48, .05);
+}
+.muted { color: var(--muted); font-size: 15px; }
+.progress-top { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--muted); margin-bottom: 8px; font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+.bar { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; margin-bottom: 22px; }
+.bar > div { height: 100%; background: var(--accent); width: 0; transition: width .3s ease; }
+label { display: block; font-weight: 500; margin: 14px 0 6px; }
+input[type="text"], select {
+  width: 100%; font: inherit; padding: 11px 12px; border: 1px solid var(--line);
+  border-radius: 8px; background: #fff; color: var(--ink);
+}
+input[type="text"]:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.btn {
+  font: inherit; font-weight: 600; border: none; border-radius: 8px; padding: 12px 20px;
+  background: var(--accent); color: #fff; cursor: pointer;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.btn:disabled { background: #a9b4b6; cursor: not-allowed; filter: none; }
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.options { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 4px; }
+.opt {
+  display: flex; align-items: flex-start; gap: 12px; width: 100%; text-align: left;
+  font: inherit; color: var(--ink); background: #fff; border: 1px solid var(--line);
+  border-radius: 8px; padding: 12px 14px; cursor: pointer;
+}
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.opt:disabled { cursor: default; }
+.opt .letter {
+  flex: 0 0 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--paper); border: 1px solid var(--line); font-weight: 600; font-size: 13px; color: var(--muted);
+}
+.opt.correct { background: var(--ok-bg); border-color: var(--ok); }
+.opt.correct .letter { background: var(--ok); border-color: var(--ok); color: #fff; }
+.opt.wrong { background: var(--bad-bg); border-color: var(--bad); }
+.opt.wrong .letter { background: var(--bad); border-color: var(--bad); color: #fff; }
+.feedback { margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 15px; display: none; }
+.feedback.show { display: block; }
+.feedback.good { background: var(--ok-bg); color: #145a34; }
+.feedback.bad { background: var(--bad-bg); color: #7a1a12; }
+.feedback strong { display: block; margin-bottom: 4px; }
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.score-big { font-family: "IBM Plex Serif", Georgia, serif; font-size: 44px; font-weight: 600; color: var(--accent); margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+.grade {
+  display: inline-block; margin: 8px 0 4px; padding: 6px 12px; border-radius: 999px;
+  background: var(--accent); color: #fff; font-weight: 600; font-size: 15px;
+}
+table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 15px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+th { font-weight: 600; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .03em; }
+td.num, th.num { text-align: right; }
+.review { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 14px; }
+.review ol { padding-left: 22px; margin: 8px 0 0; }
+.review li { margin-bottom: 14px; }
+.review .q { font-weight: 500; }
+.review .ans { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.review .yes { color: var(--ok); font-weight: 600; }
+.review .no { color: var(--bad); font-weight: 600; }
+.review .why { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.scale { font-size: 14px; color: var(--muted); margin: 14px 0 0; padding: 10px 12px; background: var(--paper); border-radius: 8px; }
+.foot { margin-top: 18px; font-size: 13px; color: var(--muted); text-align: center; }
+@media (max-width: 420px) { h1 { font-size: 24px; } .card { padding: 18px; } }
+@media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="brand" id="brand"></span>
+    <div class="langs" role="group" aria-label="Language">
+      <button type="button" id="lang-en" aria-pressed="true">English</button>
+      <button type="button" id="lang-uz" aria-pressed="false">O'zbekcha</button>
+    </div>
+  </div>
+  <div id="app" class="card" aria-live="polite"></div>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+const DATA = [{"id": "t1", "label": {"en": "Topic 1 · Networks and topologies", "uz": "1-mavzu · Tarmoqlar va topologiyalar"}, "questions": [{"q": {"en": "Every device is connected to one central switch. Which network topology is this?", "uz": "Har bir qurilma markaziy kommutatorga ulangan. Bu qaysi topologiya?"}, "opts": {"en": ["Star topology, each device has a separate link", "Bus topology, all devices share one main cable", "Ring topology, devices joined together in a loop", "Mesh topology, every device links to all others"], "uz": ["Yulduz topologiyasi, har bir qurilmaning alohida ulanishi bor", "Shina topologiyasi, hamma qurilma bitta asosiy kabelda", "Halqa topologiyasi, qurilmalar halqa shaklida ulangan", "Mesh topologiyasi, har bir qurilma boshqalarga ulangan"]}, "answer": 0, "explain": {"en": "A star topology connects each device separately to a central switch.", "uz": "Yulduz topologiyasida har bir qurilma markaziy kommutatorga alohida ulanadi."}}, {"q": {"en": "In a bus topology, what is the purpose of a terminator?", "uz": "Shina topologiyasida terminatorning vazifasi nima?"}, "opts": {"en": ["To absorb signals at each end of the cable", "To connect each device to a central switch", "To translate data into binary code", "To store files for all the network users"], "uz": ["Signallarni uchlarida yutish, qaytmasligi uchun", "Har bir qurilmani markaziy kommutatorga ulash", "Ma'lumotni ikkilik kodga aylantirib beradi", "Barcha foydalanuvchilar uchun fayl saqlash"]}, "answer": 0, "explain": {"en": "A terminator at each end of the bus absorbs the signals so they are not reflected back.", "uz": "Shina uchlaridagi terminator signallarni yutadi va ular orqaga qaytmaydi."}}, {"q": {"en": "Which device connects different networks together, such as a LAN to the internet?", "uz": "Qaysi qurilma turli tarmoqlarni, masalan LANni internetga ulaydi?"}, "opts": {"en": ["Router: connects different networks together", "NIC: a network card that connects one device", "Wireless access point: Wi-Fi for devices", "MAC address: a number for each device"], "uz": ["Router: turli tarmoqlarni bir-biriga ulaydi", "NIC: bitta qurilmaning tarmoq kartasi", "Simsiz kirish nuqtasi: Wi-Fi qurilmalar uchun", "MAC manzil: har bir qurilmaning raqami"]}, "answer": 0, "explain": {"en": "A router is a hardware device that connects networks together.", "uz": "Router turli tarmoqlarni bir-biriga ulaydigan apparat qurilmasidir."}}, {"q": {"en": "What does a MAC address do?", "uz": "MAC manzil nima vazifani bajaradi?"}, "opts": {"en": ["It identifies each device on a network", "It translates programs into machine code", "It sends data packets out to the internet", "It stores the operating system files"], "uz": ["Tarmoqdagi har bir qurilmani aniqlaydi", "Dasturlarni mashina kodiga aylantiradi", "Ma'lumot paketlarini internetga yuboradi", "Operatsion tizim fayllarini saqlaydi"]}, "answer": 0, "explain": {"en": "A MAC address is a number programmed into a network interface card that identifies each device.", "uz": "MAC manzil NIC kartaga yozilgan raqam bo'lib, har bir qurilmani aniqlaydi."}}, {"q": {"en": "Which device allows wireless devices to join a wired network?", "uz": "Qaysi qurilma simsiz qurilmalarni simli tarmoqqa ulaydi?"}, "opts": {"en": ["Wireless access point, which uses Wi-Fi signals", "Hard disc drive, which stores large amounts of data", "Device driver, which operates a hardware device", "Terminator, which absorbs signals at line ends"], "uz": ["Simsiz kirish nuqtasi, Wi-Fi signallarni ishlatadi", "Qattiq disk, u ko'p miqdorda ma'lumot saqlaydi", "Qurilma drayveri, u apparatni boshqaradi", "Terminator, u kabel uchida signallarni yutadi"]}, "answer": 0, "explain": {"en": "A wireless access point allows wireless-capable devices to connect to the network using Wi-Fi.", "uz": "Simsiz kirish nuqtasi Wi-Fi orqali qurilmalarni simli tarmoqqa ulaydi."}}, {"q": {"en": "Why does a collision happen in a network?", "uz": "Tarmoqda kolliziya (to'qnashuv) nega yuz beradi?"}, "opts": {"en": ["Two data signals hit each other on the cable", "A computer connects to the internet at once", "A switch sends data to a single device", "A router finds the quickest route to use"], "uz": ["Ikki ma'lumot signali kabelda bir-biriga uradi", "Kompyuter internetga bir vaqtda ulanadi", "Kommutator ma'lumotni bitta qurilmaga yuboradi", "Router eng tez yo'nalishni aniqlab beradi"]}, "answer": 0, "explain": {"en": "A collision happens when data bumps into other data, which often causes errors or lost data.", "uz": "Kolliziya ma'lumotlar bir-biriga urilganda yuz beradi va xatolarga olib keladi."}}]}, {"id": "t2", "label": {"en": "Topic 2 · Servers, internet and security", "uz": "2-mavzu · Serverlar, internet va xavfsizlik"}, "questions": [{"q": {"en": "A school needs a server that stores students' shared files. Which server is this?", "uz": "Maktabga umumiy o'quvchi fayllarini saqlaydigan server kerak. Bu qaysi server?"}, "opts": {"en": ["A file server that stores shared student files", "A print server that manages shared printers", "A mail server that sends school emails", "A web server that hosts the school website"], "uz": ["Fayl serveri: umumiy o'quvchi fayllarini saqlaydi", "Chop etish serveri: umumiy printerlarni boshqaradi", "Pochta serveri: maktab xatlarini yuboradi", "Veb-server: maktab saytini joylashtiradi"]}, "answer": 0, "explain": {"en": "A file server stores users' files and enables them to be shared on a network.", "uz": "Fayl serveri foydalanuvchi fayllarini saqlaydi va ularni tarmoqda ulashish imkonini beradi."}}, {"q": {"en": "What is the job of an Internet Service Provider (ISP)?", "uz": "Internet xizmat provayderi (ISP) qanday vazifani bajaradi?"}, "opts": {"en": ["It provides users access to the internet", "It stores all web pages on its own disk", "It prints documents for all the users", "It writes programs for web servers"], "uz": ["Foydalanuvchilarni internetga ulab beradi", "Barcha veb-sahifalarni o'z diskida saqlaydi", "Foydalanuvchilar uchun hujjatlarni chop etadi", "Veb-serverlar uchun dasturlar yozib beradi"]}, "answer": 0, "explain": {"en": "An ISP is a company that provides users access to the internet and is often responsible for the network equipment.", "uz": "ISP foydalanuvchilarga internetga kirish huquqini beruvchi kompaniyadir."}}, {"q": {"en": "A network can be enlarged to include many more devices. What is this property called?", "uz": "Tarmoqqa ko'proq qurilmalar qo'shib kengaytirish mumkin. Bu xususiyat qanday nomlanadi?"}, "opts": {"en": ["Scalability, the capacity to grow with more devices", "Interference, when signals disrupt each other", "Collision, when data bumps into other data", "Encryption, converting data into a scrambled form"], "uz": ["Scalability, ko'proq qurilma bilan kengayish imkoniyati", "Interferensiya, signallarning bir-birini buzishi", "Kolliziya, ma'lumotlarning bir-biriga urilishi", "Shifrlash, ma'lumotni shifrlangan shaklga o'tkazish"]}, "answer": 0, "explain": {"en": "Scalability is the capacity to make something larger, for example a network enlarged with more devices.", "uz": "Scalability — tizimni ko'proq qurilmalar bilan kattalashtirish qobiliyati."}}, {"q": {"en": "What is a high bandwidth connection?", "uz": "Yuqori polosa kengligi (high bandwidth) ulanish nima?"}, "opts": {"en": ["Large amounts of data sent per second", "Using only Wi-Fi signals to connect", "Storing data in RAM for quick access", "Having a single terminator on the cable"], "uz": ["Sekundiga katta hajmdagi ma'lumotni uzatish", "Faqat Wi-Fi signallari bilan ulanish", "Tez kirish uchun ma'lumotni RAM'da saqlash", "Kabelda faqat bitta terminator bo'lishi"]}, "answer": 0, "explain": {"en": "High bandwidth is a connection that can send and receive a large amount of data per second.", "uz": "Yuqori polosa kengligi ulanish sekundiga ko'p ma'lumot uzatishini anglatadi."}}, {"q": {"en": "A firewall is used on a school server. Which statement is correct?", "uz": "Maktab serverida firewall ishlatiladi. Qaysi gap to'g'ri?"}, "opts": {"en": ["It restricts traffic in and out of the network", "It stores students' files for others to share", "It prints documents across the whole network", "It converts all of the data into binary"], "uz": ["U kiruvchi va chiquvchi trafikni nazorat qiladi", "U o'quvchi fayllarini boshqalar bilan ulashadi", "U tarmoqda hujjatlarni chop etib beradi", "U barcha ma'lumotni ikkilik kodga aylantiradi"]}, "answer": 0, "explain": {"en": "A firewall restricts the network traffic entering and exiting a network to ensure that it is safe.", "uz": "Firewall tarmoqqa kiruvchi va chiquvchi trafikni nazorat qilib, xavfsiz qiladi."}}, {"q": {"en": "Which term describes an attempt to gain unauthorised access to damage a computer system?", "uz": "Ruxsatsiz kirish orqali kompyuter tizimiga zarar yetkazishga urinish qanday nomlanadi?"}, "opts": {"en": ["Cyber-attack, unauthorised access to a system", "Active internet, a working online connection", "Network topology, a diagram of device links", "Data packet, a small unit of sent data"], "uz": ["Cyber-attack: ruxsatsiz kirishga urinish", "Faol internet: internetga ishlaydigan aloqa", "Tarmoq topologiyasi: qurilmalar diagrammasi", "Ma'lumot paketi: yuboriladigan kichik birlik"]}, "answer": 0, "explain": {"en": "A cyber-attack is an attempt to gain unauthorised access to a network, to damage or destroy a computer system.", "uz": "Cyber-attack — tarmoqqa yoki kompyuterga ruxsatsiz kirib, zarar yetkazishga urinish."}}]}, {"id": "t3", "label": {"en": "Topic 3 · Protocols and packets", "uz": "3-mavzu · Protokollar va paketlar"}, "questions": [{"q": {"en": "A data packet arrives without its packet number. Why is this a problem?", "uz": "Ma'lumot paketi paket raqamisiz kelsa, nega bu muammo?"}, "opts": {"en": ["The receiver cannot order packets correctly", "The packet cannot be sent over a Wi-Fi link", "The packet turns into plain binary data", "The packet uses up less bandwidth overall"], "uz": ["Qabul qiluvchi paketlarni tartiblay olmaydi", "Paketni Wi-Fi orqali yuborib bo'lmaydi", "Paket ikkilik ma'lumotga aylanib qoladi", "Paket kamroq polosa kengligini ishlatadi"]}, "answer": 0, "explain": {"en": "The packet number helps the receiving device reassemble the packets in the correct order.", "uz": "Paket raqami qabul qiluvchiga paketlarni to'g'ri tartibda yig'ishga yordam beradi."}}, {"q": {"en": "Which protocol is used for transferring data between devices on a network?", "uz": "Tarmoqdagi qurilmalar orasida ma'lumot uzatish uchun qaysi protokol ishlatiladi?"}, "opts": {"en": ["TCP/IP, for transferring data between devices", "HTTPS, for secure web server communication", "Ethernet cable, a type of copper cable used", "Bluetooth, a wireless radio data technology"], "uz": ["TCP/IP: qurilmalar orasida ma'lumot uzatish", "HTTPS: xavfsiz veb-server bilan aloqa", "Ethernet kabeli: mis kabelning bir turi", "Bluetooth: simsiz radio texnologiyasi"]}, "answer": 0, "explain": {"en": "TCP/IP is the protocol for transferring data between devices.", "uz": "TCP/IP qurilmalar orasida ma'lumot uzatish uchun ishlatiladigan protokoldir."}}, {"q": {"en": "What is the purpose of an IP address in a data packet?", "uz": "Ma'lumot paketidagi IP manzilning vazifasi nima?"}, "opts": {"en": ["To show where the packet should be sent", "To store the packet's data in the RAM", "To count the packets sent each second", "To encrypt the contents of the packet"], "uz": ["Paket qayerga yuborilishini ko'rsatish", "Paket ma'lumotini RAM'da saqlab qo'yish", "Sekundiga yuborilgan paketlarni sanash", "Paket mazmunini maxfiy holatga keltirish"]}, "answer": 0, "explain": {"en": "The sender IP address and receiver IP address tell the network where to forward the packet.", "uz": "IP manzil paketning qayerga yuborilishini tarmoqqa ko'rsatadi."}}, {"q": {"en": "A packet did not reach its destination. How does the receiver ask for it again?", "uz": "Paket manzilga yetib bormadi. Qabul qiluvchi uni qanday qayta so'raydi?"}, "opts": {"en": ["It requests that the packet is sent again", "It deletes all of the other packets", "It turns the network switch off now", "It changes the IP address of sender"], "uz": ["Paketni qayta yuborishni so'raydi", "Boshqa barcha paketlarni o'chiradi", "Tarmoq kommutatorini o'chirib qo'yadi", "Yuboruvchi IP manzilini o'zgartiradi"]}, "answer": 0, "explain": {"en": "If a packet is dropped, the receiver can request that the packet is sent again.", "uz": "Yo'qolgan (dropped) paket uchun qabul qiluvchi uni qayta yuborishni so'raydi."}}, {"q": {"en": "During packet switching, why can packets be sent by different routes?", "uz": "Paketlar almashinuvida nega turli yo'llar bilan yuborilishi mumkin?"}, "opts": {"en": ["They can travel through different routers", "They must all pass through one single cable", "Routers store the packets for a long time", "The sender always uses the same route"], "uz": ["Turli routerlar orqali manzilga yetib boradi", "Ularning hammasi bitta kabeldan o'tadi", "Routerlar paketlarni doimiy saqlaydi", "Yuboruvchi har safar bir xil yo'lni tanlaydi"]}, "answer": 0, "explain": {"en": "Packets can be sent across the network using different routes, often travelling through many different devices.", "uz": "Paketlar tarmoqda turli yo'nalishlar bo'yicha, ko'plab qurilmalar orqali yuboriladi."}}, {"q": {"en": "What does HTTPS add compared with HTTP?", "uz": "HTTPS HTTP bilan solishtirganda nimani qo'shadi?"}, "opts": {"en": ["Encryption, which improves security", "Faster printing of web pages online", "A domain name for each web server", "A wireless access point for Wi-Fi"], "uz": ["Xavfsizlikni oshiradigan shifrlash", "Veb-sahifalarni tezroq chop etish", "Har bir server uchun domen nomi", "Simsiz kirish nuqtasi, Wi-Fi uchun"]}, "answer": 0, "explain": {"en": "HTTPS is the same as HTTP but with added encryption to improve security.", "uz": "HTTPS HTTP ga shifrlashni qo'shib, xavfsizlikni oshiradi."}}]}, {"id": "t4", "label": {"en": "Topic 4 · Data, storage and sound", "uz": "4-mavzu · Ma'lumot, xotira va ovoz"}, "questions": [{"q": {"en": "How many bits are in a nibble?", "uz": "Nibble tarkibida nechta bit bor?"}, "opts": {"en": ["4 bits, which is half of a byte", "8 bits, which is the same as a byte", "16 bits, which is two bytes together", "2 bits, which is one binary pair"], "uz": ["4 bit, ya'ni bayt yarmi hajmida", "8 bit, bayt bilan bir xil hajmda", "16 bit, ikki bayt birga teng", "2 bit, bitta ikkilik juftlik"]}, "answer": 0, "explain": {"en": "A nibble is 4 bits, so it is half of a byte.", "uz": "Nibble — 4 bit, ya'ni bayt yarmi."}}, {"q": {"en": "A file is 2 kilobytes in size. Using 1 kilobyte = 1000 bytes and 1 byte = 8 bits, how many bits is it?", "uz": "Fayl hajmi 2 kilobayt. 1 kilobayt = 1000 bayt, 1 bayt = 8 bit bo'lsa, u necha bit?"}, "opts": {"en": ["16000 bits in total", "2000 bits in total", "16 bits in total", "256 bits in total"], "uz": ["Jami 16000 bit hajmda", "Jami 2000 bit hajmda", "Jami 16 bit hajmda", "Jami 256 bit hajmda"]}, "answer": 0, "explain": {"en": "2 kilobytes = 2000 bytes, and 2000 × 8 = 16000 bits.", "uz": "2 kilobayt = 2000 bayt, 2000 × 8 = 16000 bit."}}, {"q": {"en": "What does a bit depth of 16 mean for a sound sample?", "uz": "Ovoz namunasi uchun 16 bitli bit chuqurligi nimani anglatadi?"}, "opts": {"en": ["16 bits are used to store each sound sample", "16 samples are recorded every single second", "The sound has a frequency of 16 hertz", "The sound lasts for a total of 16 seconds"], "uz": ["Har bir ovoz namunasi 16 bit bilan saqlanadi", "Har sekundda aynan 16 ta namuna olinadi", "Ovozning chastotasi 16 gertsga teng", "Ovoz jami 16 soniyagacha davom etadi"]}, "answer": 0, "explain": {"en": "Bit depth is the number of bits used to store a single sound sample.", "uz": "Bit chuqurligi bitta ovoz namunasini saqlash uchun ishlatiladigan bitlar sonidir."}}, {"q": {"en": "What does an analogue-to-digital converter (ADC) do?", "uz": "Analog-raqamli o'zgartirgich (ADC) nima qiladi?"}, "opts": {"en": ["Turns analogue voice signals into digital ones", "Turns digital files into printed pages here", "Stores binary data for a very long time", "Translates source code into machine code"], "uz": ["Analog signalni (ovoz) raqamliga aylantiradi", "Raqamli fayllarni qog'ozga chop etib beradi", "Ikkilik ma'lumotni uzoq vaqt saqlab turadi", "Kodni mashina koduga tarjima qilib beradi"]}, "answer": 0, "explain": {"en": "An ADC converts analogue signals, e.g. the human voice, to digital signals.", "uz": "ADC analog signalni, masalan inson ovozini, raqamli signalga aylantiradi."}}, {"q": {"en": "A sample rate of 44100 means what?", "uz": "Namuna chastotasi (sample rate) 44100 bo'lsa, bu nimani anglatadi?"}, "opts": {"en": ["How many sound samples are taken per second", "How many bits each sample uses in total", "The number of files stored on a disk drive", "The speed of the internet connection now"], "uz": ["Har sekundda necha ovoz namunasi olinishini", "Har bir namuna necha bit ishlatishini", "Diskda saqlangan fayllarning umumiy sonini", "Internet ulanish tezligini o'lchashini"]}, "answer": 0, "explain": {"en": "Sample rate is the number of sound samples taken each second.", "uz": "Sample rate — har sekundda olinadigan ovoz namunalari soni."}}, {"q": {"en": "Arrange these storage units from smallest to largest.", "uz": "Quyidagi xotira birliklarini kichigidan kattasiga qarab tartiblang."}, "opts": {"en": ["Bit, byte, kilobyte, megabyte", "Megabyte, bit, byte, kilobyte", "Byte, bit, megabyte, kilobyte", "Kilobyte, megabyte, bit, byte"], "uz": ["Bit, bayt, kilobayt, megabayt", "Megabayt, bit, bayt, kilobayt", "Bayt, bit, megabayt, kilobayt", "Kilobayt, megabayt, bit, bayt"]}, "answer": 0, "explain": {"en": "A bit is the smallest unit, then a byte (8 bits), then a kilobyte (1000 bytes), then a megabyte (1000 kilobytes).", "uz": "Bit eng kichigi, keyin bayt (8 bit), kilobayt (1000 bayt), megabayt (1000 kilobayt)."}}]}, {"id": "t5", "label": {"en": "Topic 5 · Transmission errors and checks", "uz": "5-mavzu · Uzatish xatolari va tekshiruvlar"}, "questions": [{"q": {"en": "Power surges can cause bits to flip. What is the most often given cause?", "uz": "Quvvat sakrashi bitlarning teskarilanishiga olib keladi. Ko'pincha qaysi sabab ko'rsatiladi?"}, "opts": {"en": ["Faulty wiring or nearby lightning strikes", "Using a keyboard far too often each day", "Printing very large documents each day", "Saving many files inside folders each day"], "uz": ["Nosoz simlar yoki yaqin chaqmoq urishi", "Klaviaturadan juda tez-tez foydalanish", "Katta hajmli hujjatlarni chop etish", "Fayllarni turli papkalarda saqlash"]}, "answer": 0, "explain": {"en": "Power surges are usually caused by faulty wiring or lightning strikes.", "uz": "Quvvat sakrashi odatda nosoz simlar yoki chaqmoq urishidan kelib chiqadi."}}, {"q": {"en": "Many electrical devices are used close together in one small area. What error can result?", "uz": "Kichik xonada ko'p elektr qurilmalar ishlatilsa, qanday xato yuz berishi mumkin?"}, "opts": {"en": ["Interference that disrupts transmissions", "A binary overflow inside the RAM memory", "A terminator that absorbs all signals", "A file server running out of space"], "uz": ["Ma'lumot uzatishni buzadigan interferensiya", "RAM'da ikkilik qiymatlar to'lib ketishi", "Signallarni to'liq yutadigan terminator", "Fayl serveri xotirasining to'liq tugashi"]}, "answer": 0, "explain": {"en": "Interference occurs when a number of electrical devices are used in a small area and disrupt each other's signals.", "uz": "Interferensiya kichik joyda ko'p qurilma ishlaganda signallarni buzadi."}}, {"q": {"en": "A parity bit makes the number of 1 bits even. The byte 0100 0011 has three 1s. What parity bit is added?", "uz": "Parity bit 1 lar sonini juft qiladi. 0100 0011 da uchta 1 bor. Qanday parity bit qo'shiladi?"}, "opts": {"en": ["1, making the total number of 1s even", "0, making the total number of 1s odd", "1, making the total number of 1s odd", "0, making the byte one bit longer"], "uz": ["1, shunda 1 lar soni juft bo'ladi", "0, shunda 1 lar soni toq bo'ladi", "1, shunda 1 lar soni toq bo'ladi", "0, shunda bayt uzunroq bo'ladi"]}, "answer": 0, "explain": {"en": "The byte has three 1s, so adding a 1 gives four 1s, which is even.", "uz": "Uchta 1 bor, bitta 1 qo'shsak to'rtta bo'ladi — bu juft son."}}, {"q": {"en": "What does a parity check do?", "uz": "Parity tekshiruvi nima qiladi?"}, "opts": {"en": ["It checks that data has been sent correctly", "It stores the data permanently on disk", "It translates the data into HLL code", "It increases the bandwidth of a link"], "uz": ["Ma'lumot to'g'ri uzatilganini tekshiradi", "Ma'lumotni doimiy ravishda diskda saqlaydi", "Ma'lumotni HLL tiliga tarjima qilib beradi", "Polosa kengligini sezilarli oshiradi"]}, "answer": 0, "explain": {"en": "A parity check is a type of error check that ensures data has been transmitted correctly.", "uz": "Parity tekshiruvi ma'lumot to'g'ri uzatilganini kafolatlaydigan xato tekshiruvidir."}}, {"q": {"en": "A hardware firewall device is hacked. What is a possible result?", "uz": "Apparat firewall buzib kirildi. Mumkin bo'lgan natija qaysi?"}, "opts": {"en": ["Rules change to allow any data into the network", "The network switch stores more files now", "The sound sample rate doubles in value", "The processor becomes much faster overall"], "uz": ["Qoidalar o'zgarib, istalgan ma'lumot kiradi", "Tarmoq kommutatori ko'proq fayl saqlaydi", "Ovoz namunasi chastotasi ikki barobar oshadi", "Protsessor ancha tezroq ishlay boshlaydi"]}, "answer": 0, "explain": {"en": "If a firewall is hacked, its rules could be changed to allow any data into the network.", "uz": "Hakerlangan firewall qoidalarini o'zgartirib, tarmoqni xavf ostiga qo'yishi mumkin."}}, {"q": {"en": "A network switch fails. What is the likely effect on data transmission?", "uz": "Tarmoq kommutatori ishdan chiqdi. Ma'lumot uzatishga ta'siri qanday?"}, "opts": {"en": ["Errors occur and packets are misrouted", "The screen becomes much brighter than before", "Files are compressed automatically by the OS", "The keyboard stops working completely"], "uz": ["Xatolar yuz beradi, paketlar adashadi", "Ekran ancha yorqinroq bo'lib qoladi", "Fayllar avtomatik ravishda siqiladi", "Klaviatura butunlay ishlamay qoladi"]}, "answer": 0, "explain": {"en": "If a network switch failed, this could cause errors, with packets no longer routed to the correct places.", "uz": "Kommutator ishlamasa, paketlar noto'g'ri joyga yuboriladi va xatolar paydo bo'ladi."}}]}, {"id": "t6", "label": {"en": "Topic 6 · Software and utilities", "uz": "6-mavzu · Dasturiy ta'minot va yordamchi dasturlar"}, "questions": [{"q": {"en": "Which of these is an example of applications software?", "uz": "Qaysi biri amaliy (applications) dasturiga misol?"}, "opts": {"en": ["A word processor used to write reports", "The operating system, managing hardware", "A utility that defragments a hard drive", "A device driver that runs a printer"], "uz": ["Hisobotlar yozish uchun matn muharriri", "Apparatni boshqaradigan operatsion tizim", "Diskni tartiblaydigan yordamchi dastur", "Printerni boshqaradigan drayver dasturi"]}, "answer": 0, "explain": {"en": "Applications software is designed to do a particular task, such as a word processor or spreadsheet.", "uz": "Amaliy dastur muayyan vazifani bajarish uchun mo'ljallangan, masalan matn muharriri."}}, {"q": {"en": "What is the role of a device driver?", "uz": "Qurilma drayverining vazifasi nima?"}, "opts": {"en": ["It lets the OS use a connected hardware device", "It stores files for many different users", "It writes program code directly in binary", "It prints a list of all installed software"], "uz": ["OS ulangan apparatdan foydalanishga imkon beradi", "Ko'p foydalanuvchi uchun fayllarni saqlaydi", "Dastur kodini bevosita ikkilik shaklda yozadi", "O'rnatilgan dasturlar ro'yxatini chop etadi"]}, "answer": 0, "explain": {"en": "A device driver is a software program that operates a hardware device connected to a computer.", "uz": "Qurilma drayveri kompyuterga ulangan apparatni operatsion tizim bilan ishlatadigan dasturdir."}}, {"q": {"en": "Why does a disc defragmenter help a computer run faster?", "uz": "Disk defragmentatori nega kompyuterni tezlashtiradi?"}, "opts": {"en": ["It reorganises file pieces for faster reads", "It deletes every single file on the drive", "It increases the screen resolution level", "It removes the operating system entirely"], "uz": ["Fayl qismlarini tartiblab, tezroq o'qiydi", "Qattiq diskdagi barcha fayllarni o'chiradi", "Ekran o'lchami va aniqligini oshiradi", "Operatsion tizimni butunlay olib tashlaydi"]}, "answer": 0, "explain": {"en": "Defragmentation reorganises files stored on a hard drive so all parts of the same file are one after the other.", "uz": "Defragmentatsiya fayl qismlarini ketma-ket joylashtirib, ularni tezroq o'qish imkonini beradi."}}, {"q": {"en": "What is a network operating system (NOS)?", "uz": "Tarmoq operatsion tizimi (NOS) nima?"}, "opts": {"en": ["An OS that supports networks and admin tools", "A game that is played over the internet", "A program for designing only web pages", "A hardware device connecting two networks"], "uz": ["Tarmoqlarni qo'llaydigan, admin vositali OS", "Internet orqali o'ynaladigan o'yin dasturi", "Faqat veb-sahifa yaratish uchun dastur", "Tarmoqlarni ulaydigan apparat qurilmasi"]}, "answer": 0, "explain": {"en": "A network operating system is computer operating system that supports networks, often including administrator software and monitoring tools.", "uz": "NOS tarmoqni boshqarishni qo'llab-quvvatlaydigan operatsion tizimdir."}}, {"q": {"en": "Which interface lets a user operate a computer by typing commands?", "uz": "Qaysi interfeys foydalanuvchiga buyruqlarni yozib, kompyuterni boshqarish imkonini beradi?"}, "opts": {"en": ["Command line, navigated by typing in commands", "Graphical user interface, using clickable icons", "Touchscreen only, operated by finger touch", "Voice pattern recognition, operated by speech"], "uz": ["Buyruq satri, buyruqlar yozish orqali boshqariladi", "Grafik interfeys, grafikalarni bosish orqali boshqariladi", "Faqat sensorli ekran, barmoq bilan boshqariladi", "Ovoz namunasini tanish, gapirish orqali boshqariladi"]}, "answer": 0, "explain": {"en": "The command line is a way of using an operating system that is navigated by typing commands.", "uz": "Buyruq satri operatsion tizimni buyruqlarni yozish orqali boshqarish usulidir."}}, {"q": {"en": "Which utility software checks files on a computer for malicious content?", "uz": "Qaysi yordamchi dastur kompyuterdagi fayllarni zararli kontentga tekshiradi?"}, "opts": {"en": ["Antivirus software, checking files for malware", "A spreadsheet application for calculating values", "A web browser, which opens and shows web pages", "A plug-and-play device, which sets up itself"], "uz": ["Fayllarni zararli kontentga tekshiruvchi dastur", "Elektron jadval, qiymatlarni hisoblaydi", "Veb-brauzer, veb-sahifalarni ochib beradi", "Plug-and-play qurilma, avtomatik sozlanadi"]}, "answer": 0, "explain": {"en": "Virus scanning checks files on a computer system for malicious content, as antivirus software does.", "uz": "Antivirus fayllarni viruslar va zararli kontent uchun skanerlaydi."}}]}, {"id": "t7", "label": {"en": "Topic 7 · Security and authentication", "uz": "7-mavzu · Xavfsizlik va autentifikatsiya"}, "questions": [{"q": {"en": "Which security method identifies a person using a fingerprint or facial features?", "uz": "Barmoq izi yoki yuz xususiyatlari orqali odamni aniqlaydigan xavfsizlik usuli qaysi?"}, "opts": {"en": ["Biometric security, using fingerprints or faces", "Brute-force, trying many password combinations", "Defragmentation, reorganising files on a disc", "Ransomware, locking files until payment is made"], "uz": ["Biometrik xavfsizlik, barmoq izi yoki yuz orqali", "Brute-force hujumi, ko'p parol kombinatsiyasini sinash", "Defragmentatsiya, diskdagi fayllarni tartiblash", "Ransomware, to'lov uchun fayllarni qulflaydi"]}, "answer": 0, "explain": {"en": "Biometric security identifies people using a physical attribute, such as a fingerprint or face.", "uz": "Biometrik xavfsizlik barmoq izi, yuz yoki ko'z pardasi kabi jismoniy xususiyatdan foydalanadi."}}, {"q": {"en": "A user signs in with a password, then enters a code sent to a mobile phone. What is this?", "uz": "Foydalanuvchi parol bilan kiradi, so'ng telefoniga yuborilgan kodni kiritadi. Bu nima?"}, "opts": {"en": ["Two-factor authentication, using two checks to sign in", "Plaintext transmission, sending data unencrypted", "Parity checking, checking data was sent correctly", "Packet switching, splitting data into small packets"], "uz": ["Ikki bosqichli autentifikatsiya, kirish uchun ikki tekshiruv", "Plaintext uzatish, shifrlanmagan ma'lumot yuborish", "Parity tekshiruvi, ma'lumot to'g'ri yuborilganini tekshirish", "Paketlarni almashtirish, ma'lumotni kichik paketlarga bo'lish"]}, "answer": 0, "explain": {"en": "Two-factor authentication requires a user to confirm their identity using a second device, such as a mobile phone.", "uz": "Ikki bosqichli autentifikatsiya ikkinchi qurilma orqali qo'shimcha tekshiruvni talab qiladi."}}, {"q": {"en": "What is encryption?", "uz": "Shifrlash (encryption) nima?"}, "opts": {"en": ["Scrambling data so it cannot be read if caught", "Making a copy of files in another location", "Splitting a file into small packets to send", "Reducing the size of a file for storage"], "uz": ["Ushlansa ham o'qib bo'lmaydigan qilish", "Fayllarni boshqa joyga nusxalab saqlash", "Faylni kichik paketlarga bo'lib yuborish", "Faylning hajmini ancha kamaytirib qo'yish"]}, "answer": 0, "explain": {"en": "Encryption converts information into a scrambled form so that it cannot be understood if it is intercepted.", "uz": "Shifrlash ma'lumotni shunday o'zgartiradiki, uni ushlab olgan kishi o'qiy olmaydi."}}, {"q": {"en": "Why could a hacker easily read data sent between devices?", "uz": "Haker ma'lumotni nega osonlikcha o'qishi mumkin?"}, "opts": {"en": ["Plaintext, which is sent without any encryption", "Binary data that includes parity bits", "Packets that arrive in the correct order", "Data that is kept stored in ROM memory"], "uz": ["Shifrlanmagan holda yuboriladigan plaintext", "Parity bit qo'shilgan ikkilik ma'lumot", "To'g'ri tartibda kelgan paketlar to'plami", "ROM xotirasida doimiy saqlangan ma'lumot"]}, "answer": 0, "explain": {"en": "Data sent as plaintext, if not encrypted, could be intercepted and read by a hacker.", "uz": "Shifrlanmagan (plaintext) ma'lumotni ushlab olib o'qish mumkin."}}, {"q": {"en": "What is a brute-force attack?", "uz": "Brute-force hujumi nima?"}, "opts": {"en": ["Trying dictionary passwords until one works", "Reorganising all the files on a hard drive", "Blocking all network traffic with a firewall", "Scanning one single file for any viruses"], "uz": ["Katta lug'atdagi parollarni birma-bir sinash", "Qattiq diskdagi fayllarni qayta tartiblash", "Firewall bilan tarmoq trafigini bloklash", "Fayldagi viruslarni skanerlab tekshirish"]}, "answer": 0, "explain": {"en": "A brute-force attack uses a large dictionary to try multiple password combinations until it is successful.", "uz": "Brute-force hujumi katta lug'atdagi parollarni birma-bir sinab, to'g'risini topadi."}}, {"q": {"en": "Which of these is the best example of a PIN?", "uz": "PIN ga eng yaxshi misol qaysi?"}, "opts": {"en": ["A passcode of digits for entering a device", "A fingerprint that is scanned by a sensor", "A picture of a face used for logging in", "A cable that connects two separate networks"], "uz": ["Qurilmaga kirish uchun raqamli passcode", "Sensor orqali skanerlangan barmoq izi", "Kirish uchun ishlatiladigan yuz rasmi", "Ikki tarmoqni bog'laydigan maxsus kabel"]}, "answer": 0, "explain": {"en": "A PIN is a passcode that allows a user access to a digital device.", "uz": "PIN — qurilmaga kirish uchun ishlatiladigan raqamli kod."}}]}, {"id": "t8", "label": {"en": "Topic 8 · The CPU and registers", "uz": "8-mavzu · CPU va registrlar"}, "questions": [{"q": {"en": "What is the role of the CPU?", "uz": "CPUning vazifasi nima?"}, "opts": {"en": ["It carries out the instructions of a program", "It stores all files permanently on disk", "It connects the computer to Wi-Fi networks", "It prints the output of programs for users"], "uz": ["Kompyuter dasturining ko'rsatmalarini bajaradi", "Barcha fayllarni doimiy ravishda saqlaydi", "Kompyuterni Wi-Fi tarmog'iga ulab beradi", "Dasturlarning natijalarini chop etib beradi"]}, "answer": 0, "explain": {"en": "The CPU is the part of the computer that carries out program instructions.", "uz": "CPU kompyuter dasturining ko'rsatmalarini bajaradigan qismdir."}}, {"q": {"en": "In the fetch-decode-execute cycle, what happens in the decode stage?", "uz": "Fetch-decode-execute siklida decode bosqichida nima bo'ladi?"}, "opts": {"en": ["The CPU works out what the instruction means", "The CPU fetches an instruction from memory", "The CPU carries out the instruction", "The CPU stores the result in RAM permanently"], "uz": ["CPU ko'rsatmaning ma'nosini aniqlaydi", "CPU xotiradan ko'rsatmani oladi", "CPU ko'rsatmani o'zi bajaradi", "CPU natijani RAM'da doimiy saqlaydi"]}, "answer": 0, "explain": {"en": "In the decode stage the CPU works out what the instruction means, i.e. what it is telling the CPU to do.", "uz": "Decode bosqichida CPU ko'rsatma nimani anglatishini aniqlaydi."}}, {"q": {"en": "Which register stores the address of the next instruction to be executed?", "uz": "Keyingi bajariladigan ko'rsatmaning manzilini qaysi registr saqlaydi?"}, "opts": {"en": ["Program counter (PC): next instruction address", "Accumulator (ACC): results from the ALU", "Memory data register (MDR): data in transit", "Current instruction register (CIR): now running"], "uz": ["Program counter (PC): keyingi ko'rsatma manzili", "Accumulator (ACC): ALU natijalarini saqlaydi", "Memory data register (MDR): uzatilayotgan ma'lumot", "Current instruction register (CIR): joriy ko'rsatma"]}, "answer": 0, "explain": {"en": "The program counter stores the address of the next instruction waiting to be executed by the CPU.", "uz": "Program counter (PC) keyingi bajariladigan ko'rsatmaning manzilini saqlaydi."}}, {"q": {"en": "What does the ALU do?", "uz": "ALU nima qiladi?"}, "opts": {"en": ["Carries out the calculations and logic needed", "Issues commands to other hardware components", "Stores the address of the memory being accessed", "Holds instructions waiting in main memory"], "uz": ["Hisob-kitob va mantiqiy amallarni bajaradi", "Boshqa apparat qismlariga buyruq beradi", "Murojaat qilinayotgan xotira manzilini saqlaydi", "Asosiy xotiradagi kutilayotgan ko'rsatmalar"]}, "answer": 0, "explain": {"en": "The arithmetic logic unit carries out the calculations needed during the execution of a program.", "uz": "ALU dasturni bajarish davomida kerakli hisob-kitob va mantiqiy amallarni bajaradi."}}, {"q": {"en": "What is the main job of the control unit (CU)?", "uz": "Boshqaruv bloki (CU) ning asosiy vazifasi nima?"}, "opts": {"en": ["Issues commands to hardware so programs run right", "Calculates the sum of two binary numbers now", "Stores data permanently in the hard disc drive", "Translates a high-level language into code"], "uz": ["Dasturlar to'g'ri ishlashi uchun buyruq beradi", "Ikki ikkilik sonning yig'indisini hisoblaydi", "Ma'lumotni qattiq diskda doimiy saqlaydi", "HLL'ni mashina koduga aylantirib beradi"]}, "answer": 0, "explain": {"en": "The control unit issues commands to the other hardware components to help ensure programs are carried out correctly.", "uz": "CU boshqa apparat qismlariga buyruq berib, dasturlarning to'g'ri bajarilishini ta'minlaydi."}}, {"q": {"en": "Which register holds the address of the memory location being accessed?", "uz": "Murojaat qilinayotgan xotira manzilini qaysi registr saqlaydi?"}, "opts": {"en": ["Memory address register (MAR): address accessed", "Memory data register (MDR): data read or written", "Accumulator (ACC): results of processing", "Program counter (PC): next instruction address"], "uz": ["Murojaat qilinayotgan manzilni saqlaydi", "O'qilgan yoki yozilgan ma'lumotni saqlaydi", "Qayta ishlash natijasini saqlaydi", "Keyingi ko'rsatma manzilini saqlaydi"]}, "answer": 0, "explain": {"en": "The MAR holds the address of the memory location being accessed, either to read data from or write data to.", "uz": "MAR xotiraning qaysi manzilidan o'qish yoki yozish kerakligini saqlaydi."}}]}, {"id": "t9", "label": {"en": "Topic 9 · Programming languages and logic", "uz": "9-mavzu · Dasturlash tillari va mantiq"}, "questions": [{"q": {"en": "What is a high-level language (HLL)?", "uz": "Yuqori darajali til (HLL) nima?"}, "opts": {"en": ["A language close to human words and symbols", "A language made only of binary digits", "A language the processor reads directly", "A language used only for printing reports"], "uz": ["Odam buyruqlariga yaqin so'z va belgilar", "Faqat ikkilik raqamlardan iborat til", "Protsessor bevosita tushunadigan til", "Faqat hisobotlarni chop etish uchun til"]}, "answer": 0, "explain": {"en": "A high-level language uses commands and terms that are linked to the words or symbols a human would use.", "uz": "HLL odam tiliga yaqin buyruq va so'zlardan foydalanadigan dasturlash tilidir."}}, {"q": {"en": "Which type of language uses commands similar to the instructions the processor understands?", "uz": "Qaysi tur til protsessor tushunadigan ko'rsatmalarga o'xshash buyruqlardan foydalanadi?"}, "opts": {"en": ["Low-level: similar to processor instructions", "High-level: close to human words and symbols", "Pseudocode: a textual plan of an algorithm", "Boolean expression: uses conditional operators"], "uz": ["Quyi daraja: protsessor buyruqlariga o'xshash", "Yuqori daraja: odam so'zlariga juda yaqin", "Psevdokod: algoritmning matnli ko'rinishi", "Boolean ifoda: shartli operatorlar ishlatadi"]}, "answer": 0, "explain": {"en": "A low-level language uses commands that are similar to the type of instructions the processor understands.", "uz": "LLL protsessor tushunadigan ko'rsatmalarga o'xshash buyruqlardan foydalanadi."}}, {"q": {"en": "What is the difference between a compiler and an interpreter?", "uz": "Kompilyator va interpretator o'rtasidagi farq nima?"}, "opts": {"en": ["Compiler translates all at once, interpreter line by line", "Compiler translates line by line, interpreter all at once", "Both translate only one data item at a time, always", "Neither translates the program into machine code at all"], "uz": ["Kompilyator hammasini birda, interpretator qatorma-qator", "Kompilyator qatorma-qator, interpretator hammasini birda", "Ikkalasi bir vaqtda faqat bitta ma'lumotni tarjima qiladi", "Ikkalasi hech qachon mashina koduga tarjima qilmaydi"]}, "answer": 0, "explain": {"en": "A compiler translates an entire program into machine code at once, while an interpreter translates each line of HLL code.", "uz": "Kompilyator butun dasturni bir martada tarjima qiladi, interpretator esa har bir qatorni alohida tarjima qiladi."}}, {"q": {"en": "What is an assembler?", "uz": "Assembler nima?"}, "opts": {"en": ["Translates assembly instructions into machine code", "Writes new HLL programs automatically for users", "Stores variables in the computer's main memory", "Draws graphs of the results of each program"], "uz": ["Assembly ko'rsatmalarini mashina koduga o'giradi", "HLL dasturlarni avtomatik ravishda yozadi", "O'zgaruvchilarni asosiy xotirada saqlaydi", "Dastur natijalari grafigini chizib beradi"]}, "answer": 0, "explain": {"en": "An assembler translates assembly-language instructions into machine code and creates one line of machine code for each instruction.", "uz": "Assembler assembly tilidagi har bir ko'rsatmani bitta mashina kodi qatoriga aylantiradi."}}, {"q": {"en": "What does a conditional statement do?", "uz": "Shartli bayonot (conditional statement) nima qiladi?"}, "opts": {"en": ["Checks whether set criteria are True or False", "Stores a list of data items in one variable", "Translates the whole program into binary", "Prints each line of the program as it runs"], "uz": ["Mezonlar True yoki False ekanini tekshiradi", "Bir o'zgaruvchida ma'lumotlar ro'yxatini saqlaydi", "Butun dasturni ikkilik kodga tarjima qiladi", "Dasturning har bir qatorini chop etib boradi"]}, "answer": 0, "explain": {"en": "A conditional statement completes a check to see whether set criteria are either True or False.", "uz": "Shartli bayonot belgilangan shart to'g'ri (True) yoki noto'g'ri (False) ekanini tekshiradi."}}, {"q": {"en": "What is a variable in programming?", "uz": "Dasturlashda o'zgaruvchi nima?"}, "opts": {"en": ["A named memory location that stores a value", "A translator that changes program code", "A device that connects two separate networks", "A list of all the programs installed here"], "uz": ["Qiymatni saqlaydigan nomlangan xotira joyi", "Dastur kodini o'zgartiradigan tarjimon", "Ikki tarmoqni bog'laydigan qurilma", "O'rnatilgan barcha dasturlar ro'yxati"]}, "answer": 0, "explain": {"en": "A variable is a named memory location that can store a value.", "uz": "O'zgaruvchi — qiymat saqlaydigan nomlangan xotira joyi."}}]}, {"id": "t10", "label": {"en": "Topic 10 · Design, AI and industry", "uz": "10-mavzu · Dizayn, AI va sanoat"}, "questions": [{"q": {"en": "Which design principle considers how easily anyone can use a product, including people with physical limitations?", "uz": "Mahsulotdan jismoniy cheklovlari bor odamlar ham qanchalik oson foydalana olishini hisobga oladigan tamoyil qaysi?"}, "opts": {"en": ["Accessibility, how easily anyone can use a product", "Prototype, an initial product for testing", "Feedback, comments that help improve a product", "Emerging technology, new tech added to a design"], "uz": ["Accessibility: har kim qanchalik oson foydalanishi", "Prototip: sinov uchun dastlabki mahsulot", "Feedback: mahsulotni yaxshilash uchun izohlar", "Emerging technology: dizaynda yangi texnologiya"]}, "answer": 0, "explain": {"en": "Accessibility refers to how successfully a new product or piece of software can be used by anyone.", "uz": "Accessibility — mahsulotni har kim, shu jumladan cheklovli odamlar ham ishlata olishi."}}, {"q": {"en": "A computer screen has a swivel base so the user can adjust the viewing angle. Which principle is this?", "uz": "Kompyuter ekrani foydalanuvchi burchakni sozlashi uchun aylanadigan tayanchga ega. Bu qaysi tamoyil?"}, "opts": {"en": ["Ergonomics, designing products for efficient use", "Machine learning, computers learning from experience", "Data compression, reducing the size of files", "Traditional manufacturing, making products by hand"], "uz": ["Ergonomika: mahsulotni samarali loyihalash", "Machine learning: tajribadan o'rganish", "Ma'lumotlarni siqish: fayl hajmini kamaytirish", "An'anaviy ishlab chiqarish: qo'lda tayyorlash"]}, "answer": 0, "explain": {"en": "Ergonomics is how a product is designed or arranged so the user can use it efficiently.", "uz": "Ergonomika mahsulotni foydalanuvchi uchun qulay va samarali qilib loyihalashdir."}}, {"q": {"en": "What is a prototype?", "uz": "Prototip nima?"}, "opts": {"en": ["An early product made to test before release", "A final product that is sold to customers", "A program that translates code into machine code", "A network device that connects two different LANs"], "uz": ["Sinash uchun yaratilgan dastlabki mahsulot", "Mijozlarga sotiladigan yakuniy mahsulot", "Kodni boshqa tilga tarjima qiluvchi dastur", "LANlarni bir-biriga ulaydigan tarmoq qurilmasi"]}, "answer": 0, "explain": {"en": "A prototype is an initial product created for testing and reviewing, before a final product is released.", "uz": "Prototip yakuniy mahsulot chiqarilishidan oldin sinash uchun yaratiladi."}}, {"q": {"en": "What is machine learning?", "uz": "Machine learning nima?"}, "opts": {"en": ["A computer system's ability to learn over time", "A printer that prints without using any paper", "A type of network cable with two wires", "A list of passwords saved for many users"], "uz": ["Kompyuterning vaqt o'tishi bilan o'rganishi", "Qog'ozsiz chop etadigan printer turi", "Ikki simli tarmoq kabelining bir turi", "Ko'p foydalanuvchi uchun parollar ro'yxati"]}, "answer": 0, "explain": {"en": "Machine learning is the ability of a computer system to learn over time.", "uz": "Machine learning — kompyuter tizimining vaqt o'tishi bilan o'rganish qobiliyati."}}, {"q": {"en": "What is RFID technology used for?", "uz": "RFID texnologiyasi nima uchun ishlatiladi?"}, "opts": {"en": ["Using radio signals to send data to devices", "Printing photos on paper from a computer here", "Storing data in RAM memory only for the user", "Recording sound samples at fixed intervals"], "uz": ["Radio signallari orqali ma'lumot yuborish", "Kompyuterdan qog'ozga rasm chop etish", "Ma'lumotni faqat RAM'da saqlab qo'yish", "Belgilangan vaqtda ovoz namunalarini olish"]}, "answer": 0, "explain": {"en": "RFID tags are a technology that uses radio signals to send data to another device.", "uz": "RFID teglari radio signallari orqali boshqa qurilmaga ma'lumot yuboradi."}}, {"q": {"en": "Which term describes combining electronics, AI, robotics and new technologies in industry?", "uz": "Sanoatda elektronika, AI, robototexnika va yangi texnologiyalarni birlashtirishni qanday atash mumkin?"}, "opts": {"en": ["Industry 4.0, combining electronics with AI and robotics", "Traditional manufacturing, making products on production lines", "Augmented reality glasses, adding images to the real world", "Analogue signal, a continuously varying sound signal"], "uz": ["Industry 4.0: elektronika, AI, robototexnika birligi", "An'anaviy ishlab chiqarish: liniyalarda tayyorlash", "Augmented reality ko'zoynaklari: real dunyoga tasvir", "Analog signal: uzluksiz o'zgaruvchan ovoz signali"]}, "answer": 0, "explain": {"en": "Industry 4.0 refers to how industry is combining electronics with new technologies such as machine learning, artificial intelligence and robotics.", "uz": "Industry 4.0 sanoatda elektronika va yangi texnologiyalarni birlashtirishdir."}}]}];
+
+const UI = {
+  en: {
+    brand: "Grade 7 Computing · Self-check quiz",
+    start_h: "Before you start",
+    start_p: "Choose what to take, enter your name if you like, and press Start. Each answer shows whether you were right and why.",
+    name: "Your name (optional)",
+    scope: "What to take",
+    all: "All 10 topics (60 questions)",
+    start: "Start quiz",
+    next: "Next question",
+    finish: "See results",
+    right: "Correct!",
+    wrong: "Not quite.",
+    answer: "The correct answer is",
+    question_of: (i, n) => "Question " + i + " of " + n,
+    result_h: "Your result",
+    well_done: (name) => "Well done, " + name + "!",
+    score: "Score",
+    pct: "correct",
+    grade: "Grade",
+    by_topic: "By topic",
+    topic: "Topic",
+    right_col: "Correct",
+    review: "Review your answers",
+    you_chose: "Your answer",
+    none: "No answer",
+    try_again: "Try again",
+    change: "Change topics",
+    scale_h: "Grading scale",
+    scale: "86–100% = 5 (Excellent) · 71–85% = 4 (Good) · 56–70% = 3 (Satisfactory) · 0–55% = 2 (Unsatisfactory)",
+    foot: "Your score is shown on this page only and is not saved.",
+    msg_hi: "Excellent. You know this material very well.",
+    msg_mid: "Good work. Review the questions you missed below.",
+    msg_lo: "Keep practising. Read the explanations below, then try again.",
+    g: { 5: "Excellent", 4: "Good", 3: "Satisfactory", 2: "Unsatisfactory" },
+  },
+  uz: {
+    brand: "6-sinf informatika · O'z-o'zini tekshirish testi",
+    start_h: "Boshlashdan oldin",
+    start_p: "Qaysi mavzudan test ishlashni tanlang, xohlasangiz ismingizni yozing va Boshlash tugmasini bosing. Har bir javobdan keyin to'g'ri yoki noto'g'ri ekani va sababi ko'rsatiladi.",
+    name: "Ismingiz (ixtiyoriy)",
+    scope: "Qaysi mavzudan",
+    all: "Barcha 10 mavzu (60 savol)",
+    start: "Testni boshlash",
+    next: "Keyingi savol",
+    finish: "Natijani ko'rish",
+    right: "To'g'ri!",
+    wrong: "Noto'g'ri.",
+    answer: "To'g'ri javob",
+    question_of: (i, n) => i + "-savol, jami " + n,
+    result_h: "Natijangiz",
+    well_done: (name) => "Barakalla, " + name + "!",
+    score: "Ball",
+    pct: "to'g'ri",
+    grade: "Baho",
+    by_topic: "Mavzular bo'yicha",
+    topic: "Mavzu",
+    right_col: "To'g'ri",
+    review: "Javoblaringizni ko'rib chiqing",
+    you_chose: "Sizning javobingiz",
+    none: "Javob berilmagan",
+    try_again: "Qayta ishlash",
+    change: "Mavzuni o'zgartirish",
+    scale_h: "Baholash shkalasi",
+    scale: "86–100% = 5 (a'lo) · 71–85% = 4 (yaxshi) · 56–70% = 3 (qoniqarli) · 0–55% = 2 (qoniqarsiz)",
+    foot: "Natijangiz faqat shu sahifada ko'rinadi va saqlanmaydi.",
+    msg_hi: "A'lo. Bu mavzuni juda yaxshi bilasiz.",
+    msg_mid: "Yaxshi natija. Xato qilgan savollaringizni pastda ko'rib chiqing.",
+    msg_lo: "Mashq qiling. Pastdagi izohlarni o'qib, qayta ishlang.",
+    g: { 5: "a'lo", 4: "yaxshi", 3: "qoniqarli", 2: "qoniqarsiz" },
+  },
+};
+
+const LETTERS = ["A", "B", "C", "D"];
+let lang = "en";
+let state = { screen: "start", name: "", scope: "all", qs: [], i: 0, answers: [] };
+
+const app = document.getElementById("app");
+
+function t(key) { return UI[lang][key]; }
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined && text !== null) e.textContent = text;
+  return e;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function gradeOf(pct) {
+  if (pct >= 86) return 5;
+  if (pct >= 71) return 4;
+  if (pct >= 56) return 3;
+  return 2;
+}
+
+function topicById(id) { return DATA.find((x) => x.id === id); }
+
+function setStaticText() {
+  document.getElementById("brand").textContent = UI[lang].brand;
+  document.getElementById("foot").textContent = UI[lang].foot;
+  document.documentElement.lang = lang === "uz" ? "uz" : "en";
+  document.getElementById("lang-en").setAttribute("aria-pressed", String(lang === "en"));
+  document.getElementById("lang-uz").setAttribute("aria-pressed", String(lang === "uz"));
+}
+
+function setLang(l) {
+  lang = l;
+  setStaticText();
+  render();
+}
+
+function render() {
+  if (state.screen === "start") renderStart();
+  else if (state.screen === "quiz") renderQuestion();
+  else renderResults();
+}
+
+function startQuiz(scope) {
+  const pool = [];
+  const topics = scope === "all" ? DATA : DATA.filter((x) => x.id === scope);
+  topics.forEach((tp) => tp.questions.forEach((q) => pool.push({ topic: tp.id, q, order: shuffle([0, 1, 2, 3]) })));
+  state = { screen: "quiz", name: state.name, scope, qs: scope === "all" ? shuffle(pool) : pool, i: 0, answers: [] };
+  render();
+}
+
+function renderStart() {
+  app.textContent = "";
+  app.append(el("h2", null, t("start_h")), el("p", "muted", t("start_p")));
+
+  const nameLabel = el("label", null, t("name"));
+  nameLabel.setAttribute("for", "name");
+  const nameInput = el("input");
+  nameInput.type = "text";
+  nameInput.id = "name";
+  nameInput.maxLength = 40;
+  nameInput.value = state.name;
+
+  const scopeLabel = el("label", null, t("scope"));
+  scopeLabel.setAttribute("for", "scope");
+  const sel = el("select");
+  sel.id = "scope";
+  const optAll = el("option", null, t("all"));
+  optAll.value = "all";
+  sel.appendChild(optAll);
+  DATA.forEach((tp) => {
+    const o = el("option", null, tp.label[lang] + " (" + tp.questions.length + ")");
+    o.value = tp.id;
+    sel.appendChild(o);
+  });
+  sel.value = state.scope;
+
+  const scale = el("div", "scale");
+  scale.append(el("strong", null, t("scale_h") + ": "), el("span", null, t("scale")));
+
+  const actions = el("div", "actions");
+  const btn = el("button", "btn", t("start"));
+  btn.type = "button";
+  btn.addEventListener("click", () => {
+    state.name = nameInput.value.trim();
+    startQuiz(sel.value);
+  });
+  actions.appendChild(btn);
+
+  app.append(nameLabel, nameInput, scopeLabel, sel, scale, actions);
+  nameInput.focus();
+}
+
+function renderQuestion() {
+  app.textContent = "";
+  const n = state.qs.length;
+  const item = state.qs[state.i];
+  const q = item.q;
+  const tp = topicById(item.topic);
+  const prev = state.answers[state.i];
+
+  const top = el("div", "progress-top");
+  top.append(el("span", null, tp.label[lang]), el("span", null, t("question_of")(state.i + 1, n)));
+  const bar = el("div", "bar");
+  const fill = el("div");
+  fill.style.width = (state.i / n * 100) + "%";
+  bar.appendChild(fill);
+
+  const h = el("h2", null, q.q[lang]);
+  const opts = el("div", "options");
+  const buttons = [];
+  const fb = el("div", "feedback");
+  const next = el("button", "btn", state.i === n - 1 ? t("finish") : t("next"));
+  next.type = "button";
+  next.disabled = !prev;
+
+  const correctPos = item.order.indexOf(q.answer);
+
+  function showAnswer(chosenPos) {
+    const orig = item.order[chosenPos];
+    const right = orig === q.answer;
+    buttons.forEach((b, k) => {
+      b.disabled = true;
+      if (k === correctPos) b.classList.add("correct");
+    });
+    if (!right) buttons[chosenPos].classList.add("wrong");
+    fb.className = "feedback show " + (right ? "good" : "bad");
+    fb.textContent = "";
+    fb.append(
+      el("strong", null, right ? t("right") : t("wrong") + " " + t("answer") + ": " + LETTERS[correctPos] + ") " + q.opts[lang][q.answer]),
+      el("span", null, q.explain[lang])
+    );
+    next.disabled = false;
+  }
+
+  item.order.forEach((orig, pos) => {
+    const b = el("button", "opt");
+    b.type = "button";
+    b.append(el("span", "letter", LETTERS[pos]), el("span", null, q.opts[lang][orig]));
+    b.addEventListener("click", () => {
+      if (state.answers[state.i]) return;
+      state.answers[state.i] = { chosenPos: pos, right: orig === q.answer, topic: item.topic };
+      showAnswer(pos);
+      next.focus();
+    });
+    buttons.push(b);
+    opts.appendChild(b);
+  });
+
+  if (prev) showAnswer(prev.chosenPos);
+
+  next.addEventListener("click", () => {
+    if (state.i === n - 1) { renderResults(); return; }
+    state.i++;
+    renderQuestion();
+  });
+
+  const actions = el("div", "actions");
+  actions.appendChild(next);
+  app.append(top, bar, h, opts, fb, actions);
+}
+
+function renderResults() {
+  app.textContent = "";
+  const n = state.qs.length;
+  const score = state.answers.filter((a) => a && a.right).length;
+  const pct = Math.round(score / n * 100);
+  const g = gradeOf(pct);
+  const msg = pct >= 86 ? t("msg_hi") : (pct >= 56 ? t("msg_mid") : t("msg_lo"));
+
+  app.append(el("h2", null, state.name ? t("well_done")(state.name) : t("result_h")));
+  app.append(el("div", "score-big", score + " / " + n));
+  app.append(el("p", "muted", pct + "% " + t("pct") + ". " + msg));
+  app.append(el("div", "grade", t("grade") + ": " + g + " · " + UI[lang].g[g]));
+
+  // Per-topic breakdown
+  const scopeTopics = state.scope === "all" ? DATA : DATA.filter((x) => x.id === state.scope);
+  const tbl = el("table");
+  const thead = el("tr");
+  thead.append(el("th", null, t("topic")), el("th", "num", t("right_col")), el("th", "num", "%"), el("th", "num", t("grade")));
+  tbl.appendChild(thead);
+  scopeTopics.forEach((tp) => {
+    const idxs = state.qs.map((it, k) => (it.topic === tp.id ? k : -1)).filter((k) => k >= 0);
+    const right = idxs.filter((k) => state.answers[k] && state.answers[k].right).length;
+    const tot = idxs.length;
+    const p = tot ? Math.round(right / tot * 100) : 0;
+    const tr = el("tr");
+    tr.append(el("td", null, tp.label[lang]), el("td", "num", right + " / " + tot), el("td", "num", p + "%"), el("td", "num", String(gradeOf(p))));
+    tbl.appendChild(tr);
+  });
+  app.append(tbl);
+
+  // Review
+  const review = el("div", "review");
+  review.append(el("h2", null, t("review")));
+  const ol = el("ol");
+  state.qs.forEach((item, k) => {
+    const q = item.q;
+    const a = state.answers[k];
+    const li = el("li");
+    li.append(el("div", "q", q.q[lang]));
+    const chosenText = a ? q.opts[lang][item.order[a.chosenPos]] : t("none");
+    const ans = el("div", "ans");
+    ans.append(
+      el("span", a && a.right ? "yes" : "no", a && a.right ? t("right") : t("wrong")),
+      el("span", null, " · " + t("you_chose") + ": " + chosenText + " · " + t("answer") + ": " + q.opts[lang][q.answer])
+    );
+    li.append(ans, el("div", "why", q.explain[lang]));
+    ol.appendChild(li);
+  });
+  review.appendChild(ol);
+  app.appendChild(review);
+
+  const actions = el("div", "actions");
+  const again = el("button", "btn", t("try_again"));
+  again.type = "button";
+  again.addEventListener("click", () => startQuiz(state.scope));
+  const change = el("button", "btn ghost", t("change"));
+  change.type = "button";
+  change.addEventListener("click", () => { state.screen = "start"; render(); });
+  actions.append(change, again);
+  app.appendChild(actions);
+}
+
+document.getElementById("lang-en").addEventListener("click", () => setLang("en"));
+document.getElementById("lang-uz").addEventListener("click", () => setLang("uz"));
+setStaticText();
+state.screen = "start";
+render();
+</script>
+</body>
+</html>

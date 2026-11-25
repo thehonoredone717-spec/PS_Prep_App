@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Computing Quiz</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f4f2ec;
+  --card: #ffffff;
+  --ink: #1d2430;
+  --muted: #5d6675;
+  --line: #d9d6cc;
+  --accent: #0d5c63;
+  --ok: #1e7a4a;
+  --ok-bg: #e7f4ec;
+  --bad: #b42318;
+  --bad-bg: #fbe9e7;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.wrap { max-width: 680px; margin: 0 auto; padding: 24px 16px 40px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.brand { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.langs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
+.langs button {
+  font: inherit; font-size: 14px; border: none; background: transparent; color: var(--muted);
+  padding: 7px 14px; cursor: pointer;
+}
+.langs button[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 600; }
+.langs button:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+h1, h2 {
+  font-family: "IBM Plex Serif", Georgia, serif;
+  font-weight: 600; line-height: 1.25; text-wrap: balance; margin: 0;
+}
+h1 { font-size: 28px; margin-bottom: 6px; }
+h2 { font-size: 21px; margin-bottom: 16px; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 24px; box-shadow: 0 1px 2px rgba(29, 36, 48, .05);
+}
+.muted { color: var(--muted); font-size: 15px; }
+.progress-top { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--muted); margin-bottom: 8px; font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+.bar { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; margin-bottom: 22px; }
+.bar > div { height: 100%; background: var(--accent); width: 0; transition: width .3s ease; }
+label { display: block; font-weight: 500; margin: 14px 0 6px; }
+input[type="text"], select {
+  width: 100%; font: inherit; padding: 11px 12px; border: 1px solid var(--line);
+  border-radius: 8px; background: #fff; color: var(--ink);
+}
+input[type="text"]:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.btn {
+  font: inherit; font-weight: 600; border: none; border-radius: 8px; padding: 12px 20px;
+  background: var(--accent); color: #fff; cursor: pointer;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.btn:disabled { background: #a9b4b6; cursor: not-allowed; filter: none; }
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.options { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 4px; }
+.opt {
+  display: flex; align-items: flex-start; gap: 12px; width: 100%; text-align: left;
+  font: inherit; color: var(--ink); background: #fff; border: 1px solid var(--line);
+  border-radius: 8px; padding: 12px 14px; cursor: pointer;
+}
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.opt:disabled { cursor: default; }
+.opt .letter {
+  flex: 0 0 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--paper); border: 1px solid var(--line); font-weight: 600; font-size: 13px; color: var(--muted);
+}
+.opt.correct { background: var(--ok-bg); border-color: var(--ok); }
+.opt.correct .letter { background: var(--ok); border-color: var(--ok); color: #fff; }
+.opt.wrong { background: var(--bad-bg); border-color: var(--bad); }
+.opt.wrong .letter { background: var(--bad); border-color: var(--bad); color: #fff; }
+.feedback { margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 15px; display: none; }
+.feedback.show { display: block; }
+.feedback.good { background: var(--ok-bg); color: #145a34; }
+.feedback.bad { background: var(--bad-bg); color: #7a1a12; }
+.feedback strong { display: block; margin-bottom: 4px; }
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.score-big { font-family: "IBM Plex Serif", Georgia, serif; font-size: 44px; font-weight: 600; color: var(--accent); margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+.grade {
+  display: inline-block; margin: 8px 0 4px; padding: 6px 12px; border-radius: 999px;
+  background: var(--accent); color: #fff; font-weight: 600; font-size: 15px;
+}
+table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 15px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+th { font-weight: 600; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .03em; }
+td.num, th.num { text-align: right; }
+.review { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 14px; }
+.review ol { padding-left: 22px; margin: 8px 0 0; }
+.review li { margin-bottom: 14px; }
+.review .q { font-weight: 500; }
+.review .ans { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.review .yes { color: var(--ok); font-weight: 600; }
+.review .no { color: var(--bad); font-weight: 600; }
+.review .why { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.scale { font-size: 14px; color: var(--muted); margin: 14px 0 0; padding: 10px 12px; background: var(--paper); border-radius: 8px; }
+.foot { margin-top: 18px; font-size: 13px; color: var(--muted); text-align: center; }
+@media (max-width: 420px) { h1 { font-size: 24px; } .card { padding: 18px; } }
+@media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } }
+.langs{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="brand" id="brand"></span>
+    <div class="langs" role="group" aria-label="Language">
+      <button type="button" id="lang-en" aria-pressed="true">English</button>
+      <button type="button" id="lang-uz" aria-pressed="false">O'zbekcha</button>
+    </div>
+  </div>
+  <div id="app" class="card" aria-live="polite"></div>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+const DATA = [{"id": "t1", "label": {"en": "1 · TCP/IP protocol", "uz": "1 · TCP/IP protocol"}, "questions": [{"q": {"en": "What does the keyword 'protocol' mean?", "uz": "What does the keyword 'protocol' mean?"}, "opts": {"en": ["small unit of data that is packaged to be sent across a network", "agreed rules that computers follow to communicate over a network", "part of a URL that specifies the location on the internet", "HTTP with extra encryption added to improve security"], "uz": ["small unit of data that is packaged to be sent across a network", "agreed rules that computers follow to communicate over a network", "part of a URL that specifies the location on the internet", "HTTP with extra encryption added to improve security"]}, "answer": 1, "explain": {"en": "protocol: agreed rules that computers follow to communicate over a network.", "uz": "protocol: agreed rules that computers follow to communicate over a network."}}, {"q": {"en": "What does the keyword 'TCP/IP' mean?", "uz": "What does the keyword 'TCP/IP' mean?"}, "opts": {"en": ["part of a URL that specifies the location on the internet", "HTTP with extra encryption added to improve security", "rules that govern how computers communicate over a network", "small unit of data that is packaged to be sent across a network"], "uz": ["part of a URL that specifies the location on the internet", "HTTP with extra encryption added to improve security", "rules that govern how computers communicate over a network", "small unit of data that is packaged to be sent across a network"]}, "answer": 2, "explain": {"en": "TCP/IP: rules that govern how computers communicate over a network.", "uz": "TCP/IP: rules that govern how computers communicate over a network."}}, {"q": {"en": "What does the keyword 'data packet' mean?", "uz": "What does the keyword 'data packet' mean?"}, "opts": {"en": ["part of a URL that specifies the location on the internet", "rules that govern how computers communicate over a network", "small unit of data that is packaged to be sent across a network", "agreed rules that computers follow to communicate over a network"], "uz": ["part of a URL that specifies the location on the internet", "rules that govern how computers communicate over a network", "small unit of data that is packaged to be sent across a network", "agreed rules that computers follow to communicate over a network"]}, "answer": 2, "explain": {"en": "data packet: small unit of data that is packaged to be sent across a network.", "uz": "data packet: small unit of data that is packaged to be sent across a network."}}, {"q": {"en": "What does the keyword 'IP address' mean?", "uz": "What does the keyword 'IP address' mean?"}, "opts": {"en": ["a unique number assigned to a computer on a network", "a set of rules for communicating with web servers", "part of a URL that specifies the location on the internet", "HTTP with extra encryption added to improve security"], "uz": ["a unique number assigned to a computer on a network", "a set of rules for communicating with web servers", "part of a URL that specifies the location on the internet", "HTTP with extra encryption added to improve security"]}, "answer": 0, "explain": {"en": "IP address: a unique number assigned to a computer on a network.", "uz": "IP address: a unique number assigned to a computer on a network."}}, {"q": {"en": "What does the keyword 'HTTP' mean?", "uz": "What does the keyword 'HTTP' mean?"}, "opts": {"en": ["part of a URL that specifies the location on the internet", "a set of rules for communicating with web servers", "a device that stores and manages files for a network", "a unique number assigned to a computer on a network"], "uz": ["part of a URL that specifies the location on the internet", "a set of rules for communicating with web servers", "a device that stores and manages files for a network", "a unique number assigned to a computer on a network"]}, "answer": 1, "explain": {"en": "HTTP: a set of rules for communicating with web servers.", "uz": "HTTP: a set of rules for communicating with web servers."}}, {"q": {"en": "What does the keyword 'HTTPS' mean?", "uz": "What does the keyword 'HTTPS' mean?"}, "opts": {"en": ["software that lets users send and receive text messages", "HTTP with extra encryption added to improve security", "a unique number assigned to a computer on a network", "part of a URL that specifies the location on the internet"], "uz": ["software that lets users send and receive text messages", "HTTP with extra encryption added to improve security", "a unique number assigned to a computer on a network", "part of a URL that specifies the location on the internet"]}, "answer": 1, "explain": {"en": "HTTPS: HTTP with extra encryption added to improve security.", "uz": "HTTPS: HTTP with extra encryption added to improve security."}}, {"q": {"en": "What does the keyword 'domain name' mean?", "uz": "What does the keyword 'domain name' mean?"}, "opts": {"en": ["HTTP with extra encryption added to improve security", "a unique number assigned to a computer on a network", "rules that govern how computers communicate over a network", "part of a URL that specifies the location on the internet"], "uz": ["HTTP with extra encryption added to improve security", "a unique number assigned to a computer on a network", "rules that govern how computers communicate over a network", "part of a URL that specifies the location on the internet"]}, "answer": 3, "explain": {"en": "domain name: part of a URL that specifies the location on the internet.", "uz": "domain name: part of a URL that specifies the location on the internet."}}, {"q": {"en": "What does the keyword 'dropped packet' mean?", "uz": "What does the keyword 'dropped packet' mean?"}, "opts": {"en": ["a packet that did not reach its destination", "a set of rules for communicating with web servers", "HTTP with extra encryption added to improve security", "a unique number assigned to a computer on a network"], "uz": ["a packet that did not reach its destination", "a set of rules for communicating with web servers", "HTTP with extra encryption added to improve security", "a unique number assigned to a computer on a network"]}, "answer": 0, "explain": {"en": "dropped packet: a packet that did not reach its destination.", "uz": "dropped packet: a packet that did not reach its destination."}}]}, {"id": "t2", "label": {"en": "2 · Utility programs", "uz": "2 · Utility programs"}, "questions": [{"q": {"en": "What does the keyword 'operating system' mean?", "uz": "What does the keyword 'operating system' mean?"}, "opts": {"en": ["software that operates a hardware device connected to a computer", "any type of software that secures and protects a digital device", "reorganising files on a hard drive so each file's parts sit together", "software that manages hardware and gives applications a platform to run"], "uz": ["software that operates a hardware device connected to a computer", "any type of software that secures and protects a digital device", "reorganising files on a hard drive so each file's parts sit together", "software that manages hardware and gives applications a platform to run"]}, "answer": 3, "explain": {"en": "operating system: software that manages hardware and gives applications a platform to run.", "uz": "operating system: software that manages hardware and gives applications a platform to run."}}, {"q": {"en": "What does the keyword 'utilities software' mean?", "uz": "What does the keyword 'utilities software' mean?"}, "opts": {"en": ["pieces of a file scattered across a hard disc when it is saved", "software that helps keep a digital device running smoothly", "a device detected and set up automatically, with no human help", "step-by-step instructions to solve a particular problem"], "uz": ["pieces of a file scattered across a hard disc when it is saved", "software that helps keep a digital device running smoothly", "a device detected and set up automatically, with no human help", "step-by-step instructions to solve a particular problem"]}, "answer": 1, "explain": {"en": "utilities software: software that helps keep a digital device running smoothly.", "uz": "utilities software: software that helps keep a digital device running smoothly."}}, {"q": {"en": "What does the keyword 'device driver' mean?", "uz": "What does the keyword 'device driver' mean?"}, "opts": {"en": ["software that operates a hardware device connected to a computer", "a device detected and set up automatically, with no human help", "any type of software that secures and protects a digital device", "pieces of a file scattered across a hard disc when it is saved"], "uz": ["software that operates a hardware device connected to a computer", "a device detected and set up automatically, with no human help", "any type of software that secures and protects a digital device", "pieces of a file scattered across a hard disc when it is saved"]}, "answer": 0, "explain": {"en": "device driver: software that operates a hardware device connected to a computer.", "uz": "device driver: software that operates a hardware device connected to a computer."}}, {"q": {"en": "What does the keyword 'plug-and-play device' mean?", "uz": "What does the keyword 'plug-and-play device' mean?"}, "opts": {"en": ["pieces of a file scattered across a hard disc when it is saved", "any type of software that secures and protects a digital device", "a device detected and set up automatically, with no human help", "software that operates a hardware device connected to a computer"], "uz": ["pieces of a file scattered across a hard disc when it is saved", "any type of software that secures and protects a digital device", "a device detected and set up automatically, with no human help", "software that operates a hardware device connected to a computer"]}, "answer": 2, "explain": {"en": "plug-and-play device: a device detected and set up automatically, with no human help.", "uz": "plug-and-play device: a device detected and set up automatically, with no human help."}}, {"q": {"en": "What does the keyword 'security software' mean?", "uz": "What does the keyword 'security software' mean?"}, "opts": {"en": ["a device detected and set up automatically, with no human help", "pieces of a file scattered across a hard disc when it is saved", "any type of software that secures and protects a digital device", "software that operates a hardware device connected to a computer"], "uz": ["a device detected and set up automatically, with no human help", "pieces of a file scattered across a hard disc when it is saved", "any type of software that secures and protects a digital device", "software that operates a hardware device connected to a computer"]}, "answer": 2, "explain": {"en": "security software: any type of software that secures and protects a digital device.", "uz": "security software: any type of software that secures and protects a digital device."}}, {"q": {"en": "What does the keyword 'defragmentation' mean?", "uz": "What does the keyword 'defragmentation' mean?"}, "opts": {"en": ["reorganising files on a hard drive so each file's parts sit together", "any type of software that secures and protects a digital device", "software that operates a hardware device connected to a computer", "software that manages hardware and gives applications a platform to run"], "uz": ["reorganising files on a hard drive so each file's parts sit together", "any type of software that secures and protects a digital device", "software that operates a hardware device connected to a computer", "software that manages hardware and gives applications a platform to run"]}, "answer": 0, "explain": {"en": "defragmentation: reorganising files on a hard drive so each file's parts sit together.", "uz": "defragmentation: reorganising files on a hard drive so each file's parts sit together."}}, {"q": {"en": "What does the keyword 'fragmentation' mean?", "uz": "What does the keyword 'fragmentation' mean?"}, "opts": {"en": ["a device detected and set up automatically, with no human help", "any type of software that secures and protects a digital device", "software that operates a hardware device connected to a computer", "pieces of a file scattered across a hard disc when it is saved"], "uz": ["a device detected and set up automatically, with no human help", "any type of software that secures and protects a digital device", "software that operates a hardware device connected to a computer", "pieces of a file scattered across a hard disc when it is saved"]}, "answer": 3, "explain": {"en": "fragmentation: pieces of a file scattered across a hard disc when it is saved.", "uz": "fragmentation: pieces of a file scattered across a hard disc when it is saved."}}, {"q": {"en": "What does the keyword 'algorithm' mean?", "uz": "What does the keyword 'algorithm' mean?"}, "opts": {"en": ["a device detected and set up automatically, with no human help", "pieces of a file scattered across a hard disc when it is saved", "step-by-step instructions to solve a particular problem", "software that helps keep a digital device running smoothly"], "uz": ["a device detected and set up automatically, with no human help", "pieces of a file scattered across a hard disc when it is saved", "step-by-step instructions to solve a particular problem", "software that helps keep a digital device running smoothly"]}, "answer": 2, "explain": {"en": "algorithm: step-by-step instructions to solve a particular problem.", "uz": "algorithm: step-by-step instructions to solve a particular problem."}}]}, {"id": "t3", "label": {"en": "3 · Parity checking", "uz": "3 · Parity checking"}, "questions": [{"q": {"en": "What does the keyword 'parity-checking' mean?", "uz": "What does the keyword 'parity-checking' mean?"}, "opts": {"en": ["an agreed checking method where the total number of 1s must be odd", "a type of error check that ensures data was transmitted correctly", "an agreed checking method where the total number of 1s must be even", "a bit added to a byte to make the total number of 1s even or odd"], "uz": ["an agreed checking method where the total number of 1s must be odd", "a type of error check that ensures data was transmitted correctly", "an agreed checking method where the total number of 1s must be even", "a bit added to a byte to make the total number of 1s even or odd"]}, "answer": 1, "explain": {"en": "parity-checking: a type of error check that ensures data was transmitted correctly.", "uz": "parity-checking: a type of error check that ensures data was transmitted correctly."}}, {"q": {"en": "What does the keyword 'byte' mean?", "uz": "What does the keyword 'byte' mean?"}, "opts": {"en": ["an agreed checking method for data transmission", "a single binary digit, either a 0 or a 1", "eight bits of data, such as the pattern 01010011", "a unique number given to a device on a network"], "uz": ["an agreed checking method for data transmission", "a single binary digit, either a 0 or a 1", "eight bits of data, such as the pattern 01010011", "a unique number given to a device on a network"]}, "answer": 2, "explain": {"en": "byte: eight bits of data, such as the pattern 01010011.", "uz": "byte: eight bits of data, such as the pattern 01010011."}}, {"q": {"en": "What does the keyword 'parity bit' mean?", "uz": "What does the keyword 'parity bit' mean?"}, "opts": {"en": ["a type of error check that ensures data was transmitted correctly", "an agreed checking method where the total number of 1s must be even", "an agreed checking method where the total number of 1s must be odd", "a bit added to a byte to make the total number of 1s even or odd"], "uz": ["a type of error check that ensures data was transmitted correctly", "an agreed checking method where the total number of 1s must be even", "an agreed checking method where the total number of 1s must be odd", "a bit added to a byte to make the total number of 1s even or odd"]}, "answer": 3, "explain": {"en": "parity bit: a bit added to a byte to make the total number of 1s even or odd.", "uz": "parity bit: a bit added to a byte to make the total number of 1s even or odd."}}, {"q": {"en": "What does the keyword 'even parity' mean?", "uz": "What does the keyword 'even parity' mean?"}, "opts": {"en": ["an agreed checking method where the total number of 1s must be odd", "a bit added to a byte to make the total number of 1s even or odd", "a type of error check that ensures data was transmitted correctly", "an agreed checking method where the total number of 1s must be even"], "uz": ["an agreed checking method where the total number of 1s must be odd", "a bit added to a byte to make the total number of 1s even or odd", "a type of error check that ensures data was transmitted correctly", "an agreed checking method where the total number of 1s must be even"]}, "answer": 3, "explain": {"en": "even parity: an agreed checking method where the total number of 1s must be even.", "uz": "even parity: an agreed checking method where the total number of 1s must be even."}}, {"q": {"en": "What does the keyword 'odd parity' mean?", "uz": "What does the keyword 'odd parity' mean?"}, "opts": {"en": ["a bit added to a byte to make the total number of 1s even or odd", "a type of error check that ensures data was transmitted correctly", "an agreed checking method where the total number of 1s must be odd", "an agreed checking method where the total number of 1s must be even"], "uz": ["a bit added to a byte to make the total number of 1s even or odd", "a type of error check that ensures data was transmitted correctly", "an agreed checking method where the total number of 1s must be odd", "an agreed checking method where the total number of 1s must be even"]}, "answer": 2, "explain": {"en": "odd parity: an agreed checking method where the total number of 1s must be odd.", "uz": "odd parity: an agreed checking method where the total number of 1s must be odd."}}, {"q": {"en": "A parity check reports an error in a byte. What does the check NOT tell the receiver?", "uz": "A parity check reports an error in a byte. What does the check NOT tell the receiver?"}, "opts": {"en": ["that the count of 1s is wrong", "that the data must be re-sent", "which exact bit is wrong", "that an error has occurred"], "uz": ["that the count of 1s is wrong", "that the data must be re-sent", "which exact bit is wrong", "that an error has occurred"]}, "answer": 2, "explain": {"en": "A parity check only shows that an error exists; it cannot identify which bit is incorrect.", "uz": "A parity check only shows that an error exists; it cannot identify which bit is incorrect."}}, {"q": {"en": "Two devices agree to use even parity. Which received byte shows an error?", "uz": "Two devices agree to use even parity. Which received byte shows an error?"}, "opts": {"en": ["a byte with seven 1s", "a byte with four 1s", "a byte with six 1s", "a byte with two 1s"], "uz": ["a byte with seven 1s", "a byte with four 1s", "a byte with six 1s", "a byte with two 1s"]}, "answer": 0, "explain": {"en": "Even parity needs an even count of 1s. Seven is odd, so this byte shows an error.", "uz": "Even parity needs an even count of 1s. Seven is odd, so this byte shows an error."}}, {"q": {"en": "Two devices agree to use odd parity. Which received byte shows an error?", "uz": "Two devices agree to use odd parity. Which received byte shows an error?"}, "opts": {"en": ["a byte with five 1s", "a byte with four 1s", "a byte with seven 1s", "a byte with three 1s"], "uz": ["a byte with five 1s", "a byte with four 1s", "a byte with seven 1s", "a byte with three 1s"]}, "answer": 1, "explain": {"en": "Odd parity needs an odd count of 1s. Four is even, so this byte shows an error.", "uz": "Odd parity needs an odd count of 1s. Four is even, so this byte shows an error."}}]}, {"id": "t4", "label": {"en": "4 · Security", "uz": "4 · Security"}, "questions": [{"q": {"en": "What does the keyword 'dataset' mean?", "uz": "What does the keyword 'dataset' mean?"}, "opts": {"en": ["trying many password combinations, from a large list, until one works", "an account with top-level access to change settings and manage users", "a collection of related information that a computer can manipulate", "someone who tries to gain unauthorised access to a computer or network"], "uz": ["trying many password combinations, from a large list, until one works", "an account with top-level access to change settings and manage users", "a collection of related information that a computer can manipulate", "someone who tries to gain unauthorised access to a computer or network"]}, "answer": 2, "explain": {"en": "dataset: a collection of related information that a computer can manipulate.", "uz": "dataset: a collection of related information that a computer can manipulate."}}, {"q": {"en": "What does the keyword 'administrator' mean?", "uz": "What does the keyword 'administrator' mean?"}, "opts": {"en": ["a collection of related information that a computer can manipulate", "someone who tries to gain unauthorised access to a computer or network", "trying many password combinations, from a large list, until one works", "an account with top-level access to change settings and manage users"], "uz": ["a collection of related information that a computer can manipulate", "someone who tries to gain unauthorised access to a computer or network", "trying many password combinations, from a large list, until one works", "an account with top-level access to change settings and manage users"]}, "answer": 3, "explain": {"en": "administrator: an account with top-level access to change settings and manage users.", "uz": "administrator: an account with top-level access to change settings and manage users."}}, {"q": {"en": "What does the keyword 'firewall' mean?", "uz": "What does the keyword 'firewall' mean?"}, "opts": {"en": ["signing in with two types of checks, such as a password and a one-time code", "hardware or software that checks network traffic and blocks suspicious activity", "a security method that identifies people by a physical attribute or behaviour", "someone who tries to gain unauthorised access to a computer or network"], "uz": ["signing in with two types of checks, such as a password and a one-time code", "hardware or software that checks network traffic and blocks suspicious activity", "a security method that identifies people by a physical attribute or behaviour", "someone who tries to gain unauthorised access to a computer or network"]}, "answer": 1, "explain": {"en": "firewall: hardware or software that checks network traffic and blocks suspicious activity.", "uz": "firewall: hardware or software that checks network traffic and blocks suspicious activity."}}, {"q": {"en": "What does the keyword 'brute-force attack' mean?", "uz": "What does the keyword 'brute-force attack' mean?"}, "opts": {"en": ["someone who tries to gain unauthorised access to a computer or network", "an account with top-level access to change settings and manage users", "a collection of related information that a computer can manipulate", "trying many password combinations, from a large list, until one works"], "uz": ["someone who tries to gain unauthorised access to a computer or network", "an account with top-level access to change settings and manage users", "a collection of related information that a computer can manipulate", "trying many password combinations, from a large list, until one works"]}, "answer": 3, "explain": {"en": "brute-force attack: trying many password combinations, from a large list, until one works.", "uz": "brute-force attack: trying many password combinations, from a large list, until one works."}}, {"q": {"en": "What does the keyword 'hacker' mean?", "uz": "What does the keyword 'hacker' mean?"}, "opts": {"en": ["someone who tries to gain unauthorised access to a computer or network", "trying many password combinations, from a large list, until one works", "a collection of related information that a computer can manipulate", "an account with top-level access to change settings and manage users"], "uz": ["someone who tries to gain unauthorised access to a computer or network", "trying many password combinations, from a large list, until one works", "a collection of related information that a computer can manipulate", "an account with top-level access to change settings and manage users"]}, "answer": 0, "explain": {"en": "hacker: someone who tries to gain unauthorised access to a computer or network.", "uz": "hacker: someone who tries to gain unauthorised access to a computer or network."}}, {"q": {"en": "What does the keyword 'biometric security' mean?", "uz": "What does the keyword 'biometric security' mean?"}, "opts": {"en": ["a security method that identifies people by a physical attribute or behaviour", "hardware or software that checks network traffic and blocks suspicious activity", "signing in with two types of checks, such as a password and a one-time code", "someone who tries to gain unauthorised access to a computer or network"], "uz": ["a security method that identifies people by a physical attribute or behaviour", "hardware or software that checks network traffic and blocks suspicious activity", "signing in with two types of checks, such as a password and a one-time code", "someone who tries to gain unauthorised access to a computer or network"]}, "answer": 0, "explain": {"en": "biometric security: a security method that identifies people by a physical attribute or behaviour.", "uz": "biometric security: a security method that identifies people by a physical attribute or behaviour."}}, {"q": {"en": "What does the keyword 'two-factor authentication' mean?", "uz": "What does the keyword 'two-factor authentication' mean?"}, "opts": {"en": ["hardware or software that checks network traffic and blocks suspicious activity", "signing in with two types of checks, such as a password and a one-time code", "someone who tries to gain unauthorised access to a computer or network", "a security method that identifies people by a physical attribute or behaviour"], "uz": ["hardware or software that checks network traffic and blocks suspicious activity", "signing in with two types of checks, such as a password and a one-time code", "someone who tries to gain unauthorised access to a computer or network", "a security method that identifies people by a physical attribute or behaviour"]}, "answer": 1, "explain": {"en": "two-factor authentication: signing in with two types of checks, such as a password and a one-time code.", "uz": "two-factor authentication: signing in with two types of checks, such as a password and a one-time code."}}, {"q": {"en": "What does the keyword 'password policy' mean?", "uz": "What does the keyword 'password policy' mean?"}, "opts": {"en": ["trying many password combinations, from a large list, until one works", "a collection of related information that a computer can manipulate", "an account with top-level access to change settings and manage users", "a set of rules that makes users create strong passwords"], "uz": ["trying many password combinations, from a large list, until one works", "a collection of related information that a computer can manipulate", "an account with top-level access to change settings and manage users", "a set of rules that makes users create strong passwords"]}, "answer": 3, "explain": {"en": "password policy: a set of rules that makes users create strong passwords.", "uz": "password policy: a set of rules that makes users create strong passwords."}}]}, {"id": "t5", "label": {"en": "5 · Network scalability", "uz": "5 · Network scalability"}, "questions": [{"q": {"en": "What does the keyword 'network scalability' mean?", "uz": "What does the keyword 'network scalability' mean?"}, "opts": {"en": ["the physical and logical layout of a network, which affects how it grows", "the ability to add users, devices and traffic without losing performance", "an IP protocol that provides a virtually unlimited number of IP addresses", "dividing a network into logical segments to manage addresses efficiently"], "uz": ["the physical and logical layout of a network, which affects how it grows", "the ability to add users, devices and traffic without losing performance", "an IP protocol that provides a virtually unlimited number of IP addresses", "dividing a network into logical segments to manage addresses efficiently"]}, "answer": 1, "explain": {"en": "network scalability: the ability to add users, devices and traffic without losing performance.", "uz": "network scalability: the ability to add users, devices and traffic without losing performance."}}, {"q": {"en": "What does the keyword 'bottleneck' mean?", "uz": "What does the keyword 'bottleneck' mean?"}, "opts": {"en": ["devices where cards or modules can be added instead of full replacement", "a point where traffic slows because bandwidth is insufficient", "unused switch ports for easily connecting new computers or printers", "backup pathways and hardware so traffic reroutes if a part fails"], "uz": ["devices where cards or modules can be added instead of full replacement", "a point where traffic slows because bandwidth is insufficient", "unused switch ports for easily connecting new computers or printers", "backup pathways and hardware so traffic reroutes if a part fails"]}, "answer": 1, "explain": {"en": "bottleneck: a point where traffic slows because bandwidth is insufficient.", "uz": "bottleneck: a point where traffic slows because bandwidth is insufficient."}}, {"q": {"en": "What does the keyword 'spare ports' mean?", "uz": "What does the keyword 'spare ports' mean?"}, "opts": {"en": ["devices where cards or modules can be added instead of full replacement", "backup pathways and hardware so traffic reroutes if a part fails", "unused switch ports for easily connecting new computers or printers", "dividing a network into logical segments to manage addresses efficiently"], "uz": ["devices where cards or modules can be added instead of full replacement", "backup pathways and hardware so traffic reroutes if a part fails", "unused switch ports for easily connecting new computers or printers", "dividing a network into logical segments to manage addresses efficiently"]}, "answer": 2, "explain": {"en": "spare ports: unused switch ports for easily connecting new computers or printers.", "uz": "spare ports: unused switch ports for easily connecting new computers or printers."}}, {"q": {"en": "What does the keyword 'modularity' mean?", "uz": "What does the keyword 'modularity' mean?"}, "opts": {"en": ["the ability to add users, devices and traffic without losing performance", "dividing a network into logical segments to manage addresses efficiently", "the physical and logical layout of a network, which affects how it grows", "devices where cards or modules can be added instead of full replacement"], "uz": ["the ability to add users, devices and traffic without losing performance", "dividing a network into logical segments to manage addresses efficiently", "the physical and logical layout of a network, which affects how it grows", "devices where cards or modules can be added instead of full replacement"]}, "answer": 3, "explain": {"en": "modularity: devices where cards or modules can be added instead of full replacement.", "uz": "modularity: devices where cards or modules can be added instead of full replacement."}}, {"q": {"en": "What does the keyword 'subnetting' mean?", "uz": "What does the keyword 'subnetting' mean?"}, "opts": {"en": ["the physical and logical layout of a network, which affects how it grows", "an IP protocol that provides a virtually unlimited number of IP addresses", "the ability to add users, devices and traffic without losing performance", "dividing a network into logical segments to manage addresses efficiently"], "uz": ["the physical and logical layout of a network, which affects how it grows", "an IP protocol that provides a virtually unlimited number of IP addresses", "the ability to add users, devices and traffic without losing performance", "dividing a network into logical segments to manage addresses efficiently"]}, "answer": 3, "explain": {"en": "subnetting: dividing a network into logical segments to manage addresses efficiently.", "uz": "subnetting: dividing a network into logical segments to manage addresses efficiently."}}, {"q": {"en": "What does the keyword 'IPv6' mean?", "uz": "What does the keyword 'IPv6' mean?"}, "opts": {"en": ["an IP protocol that provides a virtually unlimited number of IP addresses", "dividing a network into logical segments to manage addresses efficiently", "the ability to add users, devices and traffic without losing performance", "the physical and logical layout of a network, which affects how it grows"], "uz": ["an IP protocol that provides a virtually unlimited number of IP addresses", "dividing a network into logical segments to manage addresses efficiently", "the ability to add users, devices and traffic without losing performance", "the physical and logical layout of a network, which affects how it grows"]}, "answer": 0, "explain": {"en": "IPv6: an IP protocol that provides a virtually unlimited number of IP addresses.", "uz": "IPv6: an IP protocol that provides a virtually unlimited number of IP addresses."}}, {"q": {"en": "What does the keyword 'redundancy' mean?", "uz": "What does the keyword 'redundancy' mean?"}, "opts": {"en": ["backup pathways and hardware so traffic reroutes if a part fails", "devices where cards or modules can be added instead of full replacement", "a point where traffic slows because bandwidth is insufficient", "unused switch ports for easily connecting new computers or printers"], "uz": ["backup pathways and hardware so traffic reroutes if a part fails", "devices where cards or modules can be added instead of full replacement", "a point where traffic slows because bandwidth is insufficient", "unused switch ports for easily connecting new computers or printers"]}, "answer": 0, "explain": {"en": "redundancy: backup pathways and hardware so traffic reroutes if a part fails.", "uz": "redundancy: backup pathways and hardware so traffic reroutes if a part fails."}}, {"q": {"en": "What does the keyword 'topology' mean?", "uz": "What does the keyword 'topology' mean?"}, "opts": {"en": ["the physical and logical layout of a network, which affects how it grows", "the ability to add users, devices and traffic without losing performance", "an IP protocol that provides a virtually unlimited number of IP addresses", "dividing a network into logical segments to manage addresses efficiently"], "uz": ["the physical and logical layout of a network, which affects how it grows", "the ability to add users, devices and traffic without losing performance", "an IP protocol that provides a virtually unlimited number of IP addresses", "dividing a network into logical segments to manage addresses efficiently"]}, "answer": 0, "explain": {"en": "topology: the physical and logical layout of a network, which affects how it grows.", "uz": "topology: the physical and logical layout of a network, which affects how it grows."}}]}];
+
+const UI = {
+  en: {
+    brand: "Computing · Self-check quiz",
+    start_h: "Before you start",
+    start_p: "Choose what to take, enter your name if you like, and press Start. Each answer shows whether you were right and why.",
+    name: "Your name (optional)",
+    scope: "What to take",
+    all: "All 5 topics (40 questions)",
+    start: "Start quiz",
+    next: "Next question",
+    finish: "See results",
+    right: "Correct!",
+    wrong: "Not quite.",
+    answer: "The correct answer is",
+    question_of: (i, n) => "Question " + i + " of " + n,
+    result_h: "Your result",
+    well_done: (name) => "Well done, " + name + "!",
+    score: "Score",
+    pct: "correct",
+    grade: "Grade",
+    by_topic: "By topic",
+    topic: "Topic",
+    right_col: "Correct",
+    review: "Review your answers",
+    you_chose: "Your answer",
+    none: "No answer",
+    try_again: "Try again",
+    change: "Change topics",
+    scale_h: "Grading scale",
+    scale: "86–100% = 5 (Excellent) · 71–85% = 4 (Good) · 56–70% = 3 (Satisfactory) · 0–55% = 2 (Unsatisfactory)",
+    foot: "Your score is shown on this page only and is not saved.",
+    msg_hi: "Excellent. You know this material very well.",
+    msg_mid: "Good work. Review the questions you missed below.",
+    msg_lo: "Keep practising. Read the explanations below, then try again.",
+    g: { 5: "Excellent", 4: "Good", 3: "Satisfactory", 2: "Unsatisfactory" },
+  },
+  uz: {
+    brand: "6-sinf informatika · O'z-o'zini tekshirish testi",
+    start_h: "Boshlashdan oldin",
+    start_p: "Qaysi mavzudan test ishlashni tanlang, xohlasangiz ismingizni yozing va Boshlash tugmasini bosing. Har bir javobdan keyin to'g'ri yoki noto'g'ri ekani va sababi ko'rsatiladi.",
+    name: "Ismingiz (ixtiyoriy)",
+    scope: "Qaysi mavzudan",
+    all: "Barcha 5 mavzu (40 savol)",
+    start: "Testni boshlash",
+    next: "Keyingi savol",
+    finish: "Natijani ko'rish",
+    right: "To'g'ri!",
+    wrong: "Noto'g'ri.",
+    answer: "To'g'ri javob",
+    question_of: (i, n) => i + "-savol, jami " + n,
+    result_h: "Natijangiz",
+    well_done: (name) => "Barakalla, " + name + "!",
+    score: "Ball",
+    pct: "to'g'ri",
+    grade: "Baho",
+    by_topic: "Mavzular bo'yicha",
+    topic: "Mavzu",
+    right_col: "To'g'ri",
+    review: "Javoblaringizni ko'rib chiqing",
+    you_chose: "Sizning javobingiz",
+    none: "Javob berilmagan",
+    try_again: "Qayta ishlash",
+    change: "Mavzuni o'zgartirish",
+    scale_h: "Baholash shkalasi",
+    scale: "86–100% = 5 (a'lo) · 71–85% = 4 (yaxshi) · 56–70% = 3 (qoniqarli) · 0–55% = 2 (qoniqarsiz)",
+    foot: "Natijangiz faqat shu sahifada ko'rinadi va saqlanmaydi.",
+    msg_hi: "A'lo. Bu mavzuni juda yaxshi bilasiz.",
+    msg_mid: "Yaxshi natija. Xato qilgan savollaringizni pastda ko'rib chiqing.",
+    msg_lo: "Mashq qiling. Pastdagi izohlarni o'qib, qayta ishlang.",
+    g: { 5: "a'lo", 4: "yaxshi", 3: "qoniqarli", 2: "qoniqarsiz" },
+  },
+};
+
+const LETTERS = ["A", "B", "C", "D"];
+let lang = "en";
+let state = { screen: "start", name: "", scope: "all", qs: [], i: 0, answers: [] };
+
+const app = document.getElementById("app");
+
+function t(key) { return UI[lang][key]; }
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined && text !== null) e.textContent = text;
+  return e;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function gradeOf(pct) {
+  if (pct >= 86) return 5;
+  if (pct >= 71) return 4;
+  if (pct >= 56) return 3;
+  return 2;
+}
+
+function topicById(id) { return DATA.find((x) => x.id === id); }
+
+function setStaticText() {
+  document.getElementById("brand").textContent = UI[lang].brand;
+  document.getElementById("foot").textContent = UI[lang].foot;
+  document.documentElement.lang = lang === "uz" ? "uz" : "en";
+  document.getElementById("lang-en").setAttribute("aria-pressed", String(lang === "en"));
+  document.getElementById("lang-uz").setAttribute("aria-pressed", String(lang === "uz"));
+}
+
+function setLang(l) {
+  lang = l;
+  setStaticText();
+  render();
+}
+
+function render() {
+  if (state.screen === "start") renderStart();
+  else if (state.screen === "quiz") renderQuestion();
+  else renderResults();
+}
+
+function startQuiz(scope) {
+  const pool = [];
+  const topics = scope === "all" ? DATA : DATA.filter((x) => x.id === scope);
+  topics.forEach((tp) => tp.questions.forEach((q) => pool.push({ topic: tp.id, q, order: shuffle([0, 1, 2, 3]) })));
+  state = { screen: "quiz", name: state.name, scope, qs: scope === "all" ? shuffle(pool) : pool, i: 0, answers: [] };
+  render();
+}
+
+function renderStart() {
+  app.textContent = "";
+  app.append(el("h2", null, t("start_h")), el("p", "muted", t("start_p")));
+
+  const nameLabel = el("label", null, t("name"));
+  nameLabel.setAttribute("for", "name");
+  const nameInput = el("input");
+  nameInput.type = "text";
+  nameInput.id = "name";
+  nameInput.maxLength = 40;
+  nameInput.value = state.name;
+
+  const scopeLabel = el("label", null, t("scope"));
+  scopeLabel.setAttribute("for", "scope");
+  const sel = el("select");
+  sel.id = "scope";
+  const optAll = el("option", null, t("all"));
+  optAll.value = "all";
+  sel.appendChild(optAll);
+  DATA.forEach((tp) => {
+    const o = el("option", null, tp.label[lang] + " (" + tp.questions.length + ")");
+    o.value = tp.id;
+    sel.appendChild(o);
+  });
+  sel.value = state.scope;
+
+  const scale = el("div", "scale");
+  scale.append(el("strong", null, t("scale_h") + ": "), el("span", null, t("scale")));
+
+  const actions = el("div", "actions");
+  const btn = el("button", "btn", t("start"));
+  btn.type = "button";
+  btn.addEventListener("click", () => {
+    state.name = nameInput.value.trim();
+    startQuiz(sel.value);
+  });
+  actions.appendChild(btn);
+
+  app.append(nameLabel, nameInput, scopeLabel, sel, scale, actions);
+  nameInput.focus();
+}
+
+function renderQuestion() {
+  app.textContent = "";
+  const n = state.qs.length;
+  const item = state.qs[state.i];
+  const q = item.q;
+  const tp = topicById(item.topic);
+  const prev = state.answers[state.i];
+
+  const top = el("div", "progress-top");
+  top.append(el("span", null, tp.label[lang]), el("span", null, t("question_of")(state.i + 1, n)));
+  const bar = el("div", "bar");
+  const fill = el("div");
+  fill.style.width = (state.i / n * 100) + "%";
+  bar.appendChild(fill);
+
+  const h = el("h2", null, q.q[lang]);
+  const opts = el("div", "options");
+  const buttons = [];
+  const fb = el("div", "feedback");
+  const next = el("button", "btn", state.i === n - 1 ? t("finish") : t("next"));
+  next.type = "button";
+  next.disabled = !prev;
+
+  const correctPos = item.order.indexOf(q.answer);
+
+  function showAnswer(chosenPos) {
+    const orig = item.order[chosenPos];
+    const right = orig === q.answer;
+    buttons.forEach((b, k) => {
+      b.disabled = true;
+      if (k === correctPos) b.classList.add("correct");
+    });
+    if (!right) buttons[chosenPos].classList.add("wrong");
+    fb.className = "feedback show " + (right ? "good" : "bad");
+    fb.textContent = "";
+    fb.append(
+      el("strong", null, right ? t("right") : t("wrong") + " " + t("answer") + ": " + LETTERS[correctPos] + ") " + q.opts[lang][q.answer]),
+      el("span", null, q.explain[lang])
+    );
+    next.disabled = false;
+  }
+
+  item.order.forEach((orig, pos) => {
+    const b = el("button", "opt");
+    b.type = "button";
+    b.append(el("span", "letter", LETTERS[pos]), el("span", null, q.opts[lang][orig]));
+    b.addEventListener("click", () => {
+      if (state.answers[state.i]) return;
+      state.answers[state.i] = { chosenPos: pos, right: orig === q.answer, topic: item.topic };
+      showAnswer(pos);
+      next.focus();
+    });
+    buttons.push(b);
+    opts.appendChild(b);
+  });
+
+  if (prev) showAnswer(prev.chosenPos);
+
+  next.addEventListener("click", () => {
+    if (state.i === n - 1) { renderResults(); return; }
+    state.i++;
+    renderQuestion();
+  });
+
+  const actions = el("div", "actions");
+  actions.appendChild(next);
+  app.append(top, bar, h, opts, fb, actions);
+}
+
+function renderResults() {
+  app.textContent = "";
+  const n = state.qs.length;
+  const score = state.answers.filter((a) => a && a.right).length;
+  const pct = Math.round(score / n * 100);
+  const g = gradeOf(pct);
+  const msg = pct >= 86 ? t("msg_hi") : (pct >= 56 ? t("msg_mid") : t("msg_lo"));
+
+  app.append(el("h2", null, state.name ? t("well_done")(state.name) : t("result_h")));
+  app.append(el("div", "score-big", score + " / " + n));
+  app.append(el("p", "muted", pct + "% " + t("pct") + ". " + msg));
+  app.append(el("div", "grade", t("grade") + ": " + g + " · " + UI[lang].g[g]));
+
+  // Per-topic breakdown
+  const scopeTopics = state.scope === "all" ? DATA : DATA.filter((x) => x.id === state.scope);
+  const tbl = el("table");
+  const thead = el("tr");
+  thead.append(el("th", null, t("topic")), el("th", "num", t("right_col")), el("th", "num", "%"), el("th", "num", t("grade")));
+  tbl.appendChild(thead);
+  scopeTopics.forEach((tp) => {
+    const idxs = state.qs.map((it, k) => (it.topic === tp.id ? k : -1)).filter((k) => k >= 0);
+    const right = idxs.filter((k) => state.answers[k] && state.answers[k].right).length;
+    const tot = idxs.length;
+    const p = tot ? Math.round(right / tot * 100) : 0;
+    const tr = el("tr");
+    tr.append(el("td", null, tp.label[lang]), el("td", "num", right + " / " + tot), el("td", "num", p + "%"), el("td", "num", String(gradeOf(p))));
+    tbl.appendChild(tr);
+  });
+  app.append(tbl);
+
+  // Review
+  const review = el("div", "review");
+  review.append(el("h2", null, t("review")));
+  const ol = el("ol");
+  state.qs.forEach((item, k) => {
+    const q = item.q;
+    const a = state.answers[k];
+    const li = el("li");
+    li.append(el("div", "q", q.q[lang]));
+    const chosenText = a ? q.opts[lang][item.order[a.chosenPos]] : t("none");
+    const ans = el("div", "ans");
+    ans.append(
+      el("span", a && a.right ? "yes" : "no", a && a.right ? t("right") : t("wrong")),
+      el("span", null, " · " + t("you_chose") + ": " + chosenText + " · " + t("answer") + ": " + q.opts[lang][q.answer])
+    );
+    li.append(ans, el("div", "why", q.explain[lang]));
+    ol.appendChild(li);
+  });
+  review.appendChild(ol);
+  app.appendChild(review);
+
+  const actions = el("div", "actions");
+  const again = el("button", "btn", t("try_again"));
+  again.type = "button";
+  again.addEventListener("click", () => startQuiz(state.scope));
+  const change = el("button", "btn ghost", t("change"));
+  change.type = "button";
+  change.addEventListener("click", () => { state.screen = "start"; render(); });
+  actions.append(change, again);
+  app.appendChild(actions);
+}
+
+document.getElementById("lang-en").addEventListener("click", () => setLang("en"));
+document.getElementById("lang-uz").addEventListener("click", () => setLang("uz"));
+setStaticText();
+state.screen = "start";
+render();
+</script>
+</body>
+</html>

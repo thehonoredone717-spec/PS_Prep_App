@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Computing Quiz</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f4f2ec;
+  --card: #ffffff;
+  --ink: #1d2430;
+  --muted: #5d6675;
+  --line: #d9d6cc;
+  --accent: #0d5c63;
+  --ok: #1e7a4a;
+  --ok-bg: #e7f4ec;
+  --bad: #b42318;
+  --bad-bg: #fbe9e7;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.wrap { max-width: 680px; margin: 0 auto; padding: 24px 16px 40px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.brand { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.langs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
+.langs button {
+  font: inherit; font-size: 14px; border: none; background: transparent; color: var(--muted);
+  padding: 7px 14px; cursor: pointer;
+}
+.langs button[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 600; }
+.langs button:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+h1, h2 {
+  font-family: "IBM Plex Serif", Georgia, serif;
+  font-weight: 600; line-height: 1.25; text-wrap: balance; margin: 0;
+}
+h1 { font-size: 28px; margin-bottom: 6px; }
+h2 { font-size: 21px; margin-bottom: 16px; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 24px; box-shadow: 0 1px 2px rgba(29, 36, 48, .05);
+}
+.muted { color: var(--muted); font-size: 15px; }
+.progress-top { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--muted); margin-bottom: 8px; font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+.bar { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; margin-bottom: 22px; }
+.bar > div { height: 100%; background: var(--accent); width: 0; transition: width .3s ease; }
+label { display: block; font-weight: 500; margin: 14px 0 6px; }
+input[type="text"], select {
+  width: 100%; font: inherit; padding: 11px 12px; border: 1px solid var(--line);
+  border-radius: 8px; background: #fff; color: var(--ink);
+}
+input[type="text"]:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.btn {
+  font: inherit; font-weight: 600; border: none; border-radius: 8px; padding: 12px 20px;
+  background: var(--accent); color: #fff; cursor: pointer;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.btn:disabled { background: #a9b4b6; cursor: not-allowed; filter: none; }
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.options { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 4px; }
+.opt {
+  display: flex; align-items: flex-start; gap: 12px; width: 100%; text-align: left;
+  font: inherit; color: var(--ink); background: #fff; border: 1px solid var(--line);
+  border-radius: 8px; padding: 12px 14px; cursor: pointer;
+}
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.opt:disabled { cursor: default; }
+.opt .letter {
+  flex: 0 0 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--paper); border: 1px solid var(--line); font-weight: 600; font-size: 13px; color: var(--muted);
+}
+.opt.correct { background: var(--ok-bg); border-color: var(--ok); }
+.opt.correct .letter { background: var(--ok); border-color: var(--ok); color: #fff; }
+.opt.wrong { background: var(--bad-bg); border-color: var(--bad); }
+.opt.wrong .letter { background: var(--bad); border-color: var(--bad); color: #fff; }
+.feedback { margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 15px; display: none; }
+.feedback.show { display: block; }
+.feedback.good { background: var(--ok-bg); color: #145a34; }
+.feedback.bad { background: var(--bad-bg); color: #7a1a12; }
+.feedback strong { display: block; margin-bottom: 4px; }
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.score-big { font-family: "IBM Plex Serif", Georgia, serif; font-size: 44px; font-weight: 600; color: var(--accent); margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+.grade {
+  display: inline-block; margin: 8px 0 4px; padding: 6px 12px; border-radius: 999px;
+  background: var(--accent); color: #fff; font-weight: 600; font-size: 15px;
+}
+table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 15px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+th { font-weight: 600; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .03em; }
+td.num, th.num { text-align: right; }
+.review { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 14px; }
+.review ol { padding-left: 22px; margin: 8px 0 0; }
+.review li { margin-bottom: 14px; }
+.review .q { font-weight: 500; }
+.review .ans { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.review .yes { color: var(--ok); font-weight: 600; }
+.review .no { color: var(--bad); font-weight: 600; }
+.review .why { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.scale { font-size: 14px; color: var(--muted); margin: 14px 0 0; padding: 10px 12px; background: var(--paper); border-radius: 8px; }
+.foot { margin-top: 18px; font-size: 13px; color: var(--muted); text-align: center; }
+@media (max-width: 420px) { h1 { font-size: 24px; } .card { padding: 18px; } }
+@media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } }
+.langs{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="brand" id="brand"></span>
+    <div class="langs" role="group" aria-label="Language">
+      <button type="button" id="lang-en" aria-pressed="true">English</button>
+      <button type="button" id="lang-uz" aria-pressed="false">O'zbekcha</button>
+    </div>
+  </div>
+  <div id="app" class="card" aria-live="polite"></div>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+const DATA = [{"id": "t1", "label": {"en": "1 · CPU registers and the fetch-decode-execute cycle", "uz": "1 · CPU registers and the fetch-decode-execute cycle"}, "questions": [{"q": {"en": "What does the keyword 'Program Counter (PC)' mean?", "uz": "What does the keyword 'Program Counter (PC)' mean?"}, "opts": {"en": ["a register temporarily storing intermediate results from the ALU", "a register holding the address of the next instruction to be read", "a register holding the address of the memory location being accessed", "a register holding the instruction currently being decoded and executed"], "uz": ["a register temporarily storing intermediate results from the ALU", "a register holding the address of the next instruction to be read", "a register holding the address of the memory location being accessed", "a register holding the instruction currently being decoded and executed"]}, "answer": 1, "explain": {"en": "Program Counter (PC): a register holding the address of the next instruction to be read.", "uz": "Program Counter (PC): a register holding the address of the next instruction to be read."}}, {"q": {"en": "What does the keyword 'Memory Address Register (MAR)' mean?", "uz": "What does the keyword 'Memory Address Register (MAR)' mean?"}, "opts": {"en": ["a register holding the address of the next instruction to be read", "the cycle the CPU repeats to fetch, decode and execute each instruction", "a register holding the address of the memory location being accessed", "a register holding the instruction currently being decoded and executed"], "uz": ["a register holding the address of the next instruction to be read", "the cycle the CPU repeats to fetch, decode and execute each instruction", "a register holding the address of the memory location being accessed", "a register holding the instruction currently being decoded and executed"]}, "answer": 2, "explain": {"en": "Memory Address Register (MAR): a register holding the address of the memory location being accessed.", "uz": "Memory Address Register (MAR): a register holding the address of the memory location being accessed."}}, {"q": {"en": "What does the keyword 'Memory Data Register (MDR)' mean?", "uz": "What does the keyword 'Memory Data Register (MDR)' mean?"}, "opts": {"en": ["the part of an instruction that gives the operation to be carried out, such as ADD", "the cycle the CPU repeats to fetch, decode and execute each instruction", "a register temporarily holding data or instructions moving to or from memory", "a register holding the instruction currently being decoded and executed"], "uz": ["the part of an instruction that gives the operation to be carried out, such as ADD", "the cycle the CPU repeats to fetch, decode and execute each instruction", "a register temporarily holding data or instructions moving to or from memory", "a register holding the instruction currently being decoded and executed"]}, "answer": 2, "explain": {"en": "Memory Data Register (MDR): a register temporarily holding data or instructions moving to or from memory.", "uz": "Memory Data Register (MDR): a register temporarily holding data or instructions moving to or from memory."}}, {"q": {"en": "What does the keyword 'Current Instruction Register (CIR)' mean?", "uz": "What does the keyword 'Current Instruction Register (CIR)' mean?"}, "opts": {"en": ["a register holding the instruction currently being decoded and executed", "a register holding the address of the memory location being accessed", "a register temporarily holding data or instructions moving to or from memory", "the cycle the CPU repeats to fetch, decode and execute each instruction"], "uz": ["a register holding the instruction currently being decoded and executed", "a register holding the address of the memory location being accessed", "a register temporarily holding data or instructions moving to or from memory", "the cycle the CPU repeats to fetch, decode and execute each instruction"]}, "answer": 0, "explain": {"en": "Current Instruction Register (CIR): a register holding the instruction currently being decoded and executed.", "uz": "Current Instruction Register (CIR): a register holding the instruction currently being decoded and executed."}}, {"q": {"en": "What does the keyword 'Accumulator (ACC)' mean?", "uz": "What does the keyword 'Accumulator (ACC)' mean?"}, "opts": {"en": ["a register holding the address of the next instruction to be read", "a register temporarily storing intermediate results from the ALU", "a register holding the instruction currently being decoded and executed", "a register holding the address of the memory location being accessed"], "uz": ["a register holding the address of the next instruction to be read", "a register temporarily storing intermediate results from the ALU", "a register holding the instruction currently being decoded and executed", "a register holding the address of the memory location being accessed"]}, "answer": 1, "explain": {"en": "Accumulator (ACC): a register temporarily storing intermediate results from the ALU.", "uz": "Accumulator (ACC): a register temporarily storing intermediate results from the ALU."}}, {"q": {"en": "What does the keyword 'opcode' mean?", "uz": "What does the keyword 'opcode' mean?"}, "opts": {"en": ["the cycle the CPU repeats to fetch, decode and execute each instruction", "the part of an instruction that gives the operation to be carried out, such as ADD", "a register holding the instruction currently being decoded and executed", "a register temporarily holding data or instructions moving to or from memory"], "uz": ["the cycle the CPU repeats to fetch, decode and execute each instruction", "the part of an instruction that gives the operation to be carried out, such as ADD", "a register holding the instruction currently being decoded and executed", "a register temporarily holding data or instructions moving to or from memory"]}, "answer": 1, "explain": {"en": "opcode: the part of an instruction that gives the operation to be carried out, such as ADD.", "uz": "opcode: the part of an instruction that gives the operation to be carried out, such as ADD."}}, {"q": {"en": "What does the keyword 'operand' mean?", "uz": "What does the keyword 'operand' mean?"}, "opts": {"en": ["the cycle the CPU repeats to fetch, decode and execute", "a register temporarily storing intermediate ALU results", "the register that holds the address of the next instruction", "the data or memory address that an operation acts on"], "uz": ["the cycle the CPU repeats to fetch, decode and execute", "a register temporarily storing intermediate ALU results", "the register that holds the address of the next instruction", "the data or memory address that an operation acts on"]}, "answer": 3, "explain": {"en": "operand: the data or memory address that an operation acts on.", "uz": "operand: the data or memory address that an operation acts on."}}, {"q": {"en": "What does the keyword 'fetch-decode-execute cycle' mean?", "uz": "What does the keyword 'fetch-decode-execute cycle' mean?"}, "opts": {"en": ["the cycle the CPU repeats to fetch, decode and execute each instruction", "a register holding the instruction currently being decoded and executed", "a register temporarily holding data or instructions moving to or from memory", "a register holding the address of the memory location being accessed"], "uz": ["the cycle the CPU repeats to fetch, decode and execute each instruction", "a register holding the instruction currently being decoded and executed", "a register temporarily holding data or instructions moving to or from memory", "a register holding the address of the memory location being accessed"]}, "answer": 0, "explain": {"en": "fetch-decode-execute cycle: the cycle the CPU repeats to fetch, decode and execute each instruction.", "uz": "fetch-decode-execute cycle: the cycle the CPU repeats to fetch, decode and execute each instruction."}}]}, {"id": "t2", "label": {"en": "2 · Network basics and connectivity", "uz": "2 · Network basics and connectivity"}, "questions": [{"q": {"en": "What does the keyword 'network' mean?", "uz": "What does the keyword 'network' mean?"}, "opts": {"en": ["a state in which a device has a working link to the internet", "built so that the network is easy to maintain in the future", "a connection that can send and receive large amounts of data each second", "a set of computing devices connected together by wires or wirelessly"], "uz": ["a state in which a device has a working link to the internet", "built so that the network is easy to maintain in the future", "a connection that can send and receive large amounts of data each second", "a set of computing devices connected together by wires or wirelessly"]}, "answer": 3, "explain": {"en": "network: a set of computing devices connected together by wires or wirelessly.", "uz": "network: a set of computing devices connected together by wires or wirelessly."}}, {"q": {"en": "What does the keyword 'data' mean?", "uz": "What does the keyword 'data' mean?"}, "opts": {"en": ["built so that the network is easy to maintain in the future", "raw facts and figures that have not yet been processed", "a small unit of data packaged to be sent across a network", "electronic signals disrupting the transmission of data"], "uz": ["built so that the network is easy to maintain in the future", "raw facts and figures that have not yet been processed", "a small unit of data packaged to be sent across a network", "electronic signals disrupting the transmission of data"]}, "answer": 1, "explain": {"en": "data: raw facts and figures that have not yet been processed.", "uz": "data: raw facts and figures that have not yet been processed."}}, {"q": {"en": "What does the keyword 'data packet' mean?", "uz": "What does the keyword 'data packet' mean?"}, "opts": {"en": ["a small unit of data packaged to be sent across a network", "a state in which a device has a working link to the internet", "built so that the network is easy to maintain in the future", "electronic signals disrupting the transmission of data"], "uz": ["a small unit of data packaged to be sent across a network", "a state in which a device has a working link to the internet", "built so that the network is easy to maintain in the future", "electronic signals disrupting the transmission of data"]}, "answer": 0, "explain": {"en": "data packet: a small unit of data packaged to be sent across a network.", "uz": "data packet: a small unit of data packaged to be sent across a network."}}, {"q": {"en": "What does the keyword 'sustainably' mean?", "uz": "What does the keyword 'sustainably' mean?"}, "opts": {"en": ["a state in which a device has a working link to the internet", "a small unit of data packaged to be sent across a network", "built so that the network is easy to maintain in the future", "electronic signals disrupting the transmission of data"], "uz": ["a state in which a device has a working link to the internet", "a small unit of data packaged to be sent across a network", "built so that the network is easy to maintain in the future", "electronic signals disrupting the transmission of data"]}, "answer": 2, "explain": {"en": "sustainably: built so that the network is easy to maintain in the future.", "uz": "sustainably: built so that the network is easy to maintain in the future."}}, {"q": {"en": "What does the keyword 'fit for purpose' mean?", "uz": "What does the keyword 'fit for purpose' mean?"}, "opts": {"en": ["electronic signals disrupting the transmission of data", "raw facts and figures that have not yet been processed", "designed very well to serve its intended purpose", "a small unit of data packaged to be sent across a network"], "uz": ["electronic signals disrupting the transmission of data", "raw facts and figures that have not yet been processed", "designed very well to serve its intended purpose", "a small unit of data packaged to be sent across a network"]}, "answer": 2, "explain": {"en": "fit for purpose: designed very well to serve its intended purpose.", "uz": "fit for purpose: designed very well to serve its intended purpose."}}, {"q": {"en": "What does the keyword 'active internet connection' mean?", "uz": "What does the keyword 'active internet connection' mean?"}, "opts": {"en": ["a state in which a device has a working link to the internet", "electronic signals disrupting the transmission of data", "a small unit of data packaged to be sent across a network", "built so that the network is easy to maintain in the future"], "uz": ["a state in which a device has a working link to the internet", "electronic signals disrupting the transmission of data", "a small unit of data packaged to be sent across a network", "built so that the network is easy to maintain in the future"]}, "answer": 0, "explain": {"en": "active internet connection: a state in which a device has a working link to the internet.", "uz": "active internet connection: a state in which a device has a working link to the internet."}}, {"q": {"en": "What does the keyword 'high-bandwidth' mean?", "uz": "What does the keyword 'high-bandwidth' mean?"}, "opts": {"en": ["a set of computing devices connected together by wires or wirelessly", "a state in which a device has a working link to the internet", "built so that the network is easy to maintain in the future", "a connection that can send and receive large amounts of data each second"], "uz": ["a set of computing devices connected together by wires or wirelessly", "a state in which a device has a working link to the internet", "built so that the network is easy to maintain in the future", "a connection that can send and receive large amounts of data each second"]}, "answer": 3, "explain": {"en": "high-bandwidth: a connection that can send and receive large amounts of data each second.", "uz": "high-bandwidth: a connection that can send and receive large amounts of data each second."}}, {"q": {"en": "What does the keyword 'interference' mean?", "uz": "What does the keyword 'interference' mean?"}, "opts": {"en": ["a small unit of data packaged to be sent across a network", "built so that the network is easy to maintain in the future", "electronic signals disrupting the transmission of data", "raw facts and figures that have not yet been processed"], "uz": ["a small unit of data packaged to be sent across a network", "built so that the network is easy to maintain in the future", "electronic signals disrupting the transmission of data", "raw facts and figures that have not yet been processed"]}, "answer": 2, "explain": {"en": "interference: electronic signals disrupting the transmission of data.", "uz": "interference: electronic signals disrupting the transmission of data."}}]}, {"id": "t3", "label": {"en": "3 · Network topologies", "uz": "3 · Network topologies"}, "questions": [{"q": {"en": "What does the keyword 'router' mean?", "uz": "What does the keyword 'router' mean?"}, "opts": {"en": ["a network in which all devices are connected together to form a ring", "a hardware device that connects several networks together", "a diagram showing how devices in a network are connected to each other", "devices all joined to one main cable that runs through the network"], "uz": ["a network in which all devices are connected together to form a ring", "a hardware device that connects several networks together", "a diagram showing how devices in a network are connected to each other", "devices all joined to one main cable that runs through the network"]}, "answer": 1, "explain": {"en": "router: a hardware device that connects several networks together.", "uz": "router: a hardware device that connects several networks together."}}, {"q": {"en": "What does the keyword 'network topology' mean?", "uz": "What does the keyword 'network topology' mean?"}, "opts": {"en": ["a network in which all devices are connected together to form a ring", "an end piece on a cable that absorbs signals so they do not bounce back", "a diagram showing how devices in a network are connected to each other", "when data bumps into other data, which often causes errors or lost data"], "uz": ["a network in which all devices are connected together to form a ring", "an end piece on a cable that absorbs signals so they do not bounce back", "a diagram showing how devices in a network are connected to each other", "when data bumps into other data, which often causes errors or lost data"]}, "answer": 2, "explain": {"en": "network topology: a diagram showing how devices in a network are connected to each other.", "uz": "network topology: a diagram showing how devices in a network are connected to each other."}}, {"q": {"en": "What does the keyword 'bus topology' mean?", "uz": "What does the keyword 'bus topology' mean?"}, "opts": {"en": ["a network in which all devices are connected together to form a ring", "an end piece on a cable that absorbs signals so they do not bounce back", "a diagram showing how devices in a network are connected to each other", "devices all joined to one main cable that runs through the network"], "uz": ["a network in which all devices are connected together to form a ring", "an end piece on a cable that absorbs signals so they do not bounce back", "a diagram showing how devices in a network are connected to each other", "devices all joined to one main cable that runs through the network"]}, "answer": 3, "explain": {"en": "bus topology: devices all joined to one main cable that runs through the network.", "uz": "bus topology: devices all joined to one main cable that runs through the network."}}, {"q": {"en": "What does the keyword 'ring topology' mean?", "uz": "What does the keyword 'ring topology' mean?"}, "opts": {"en": ["a diagram showing how devices in a network are connected to each other", "an end piece on a cable that absorbs signals so they do not bounce back", "devices all joined to one main cable that runs through the network", "a network in which all devices are connected together to form a ring"], "uz": ["a diagram showing how devices in a network are connected to each other", "an end piece on a cable that absorbs signals so they do not bounce back", "devices all joined to one main cable that runs through the network", "a network in which all devices are connected together to form a ring"]}, "answer": 3, "explain": {"en": "ring topology: a network in which all devices are connected together to form a ring.", "uz": "ring topology: a network in which all devices are connected together to form a ring."}}, {"q": {"en": "What does the keyword 'star topology' mean?", "uz": "What does the keyword 'star topology' mean?"}, "opts": {"en": ["a diagram showing how devices in a network are connected to each other", "an end piece on a cable that absorbs signals so they do not bounce back", "a network in which each device is connected separately to a central switch", "when data bumps into other data, which often causes errors or lost data"], "uz": ["a diagram showing how devices in a network are connected to each other", "an end piece on a cable that absorbs signals so they do not bounce back", "a network in which each device is connected separately to a central switch", "when data bumps into other data, which often causes errors or lost data"]}, "answer": 2, "explain": {"en": "star topology: a network in which each device is connected separately to a central switch.", "uz": "star topology: a network in which each device is connected separately to a central switch."}}, {"q": {"en": "What does the keyword 'terminator' mean?", "uz": "What does the keyword 'terminator' mean?"}, "opts": {"en": ["a diagram showing how devices in a network are connected to each other", "a network in which all devices are connected together to form a ring", "an end piece on a cable that absorbs signals so they do not bounce back", "when data bumps into other data, which often causes errors or lost data"], "uz": ["a diagram showing how devices in a network are connected to each other", "a network in which all devices are connected together to form a ring", "an end piece on a cable that absorbs signals so they do not bounce back", "when data bumps into other data, which often causes errors or lost data"]}, "answer": 2, "explain": {"en": "terminator: an end piece on a cable that absorbs signals so they do not bounce back.", "uz": "terminator: an end piece on a cable that absorbs signals so they do not bounce back."}}, {"q": {"en": "What does the keyword 'colliding' mean?", "uz": "What does the keyword 'colliding' mean?"}, "opts": {"en": ["when data bumps into other data, which often causes errors or lost data", "an end piece on a cable that absorbs signals so they do not bounce back", "a network in which all devices are connected together to form a ring", "a diagram showing how devices in a network are connected to each other"], "uz": ["when data bumps into other data, which often causes errors or lost data", "an end piece on a cable that absorbs signals so they do not bounce back", "a network in which all devices are connected together to form a ring", "a diagram showing how devices in a network are connected to each other"]}, "answer": 0, "explain": {"en": "colliding: when data bumps into other data, which often causes errors or lost data.", "uz": "colliding: when data bumps into other data, which often causes errors or lost data."}}, {"q": {"en": "In a star topology, one cable is damaged. What happens?", "uz": "In a star topology, one cable is damaged. What happens?"}, "opts": {"en": ["the whole network stops working at once for everyone", "only the device on that cable loses its connection", "the central switch turns into a bus network", "every device starts sharing one single terminator"], "uz": ["the whole network stops working at once for everyone", "only the device on that cable loses its connection", "the central switch turns into a bus network", "every device starts sharing one single terminator"]}, "answer": 1, "explain": {"en": "In a star topology each device has its own cable to the switch, so only that device is affected.", "uz": "In a star topology each device has its own cable to the switch, so only that device is affected."}}]}, {"id": "t4", "label": {"en": "4 · Machine learning and industry", "uz": "4 · Machine learning and industry"}, "questions": [{"q": {"en": "What does the keyword 'machine learning' mean?", "uz": "What does the keyword 'machine learning' mean?"}, "opts": {"en": ["a software application that uses text to ask questions and help a user", "a technology that uses radio signals to send data to another device", "the ability of a computer system to learn and improve over time", "making products before computerisation, often on human production lines"], "uz": ["a software application that uses text to ask questions and help a user", "a technology that uses radio signals to send data to another device", "the ability of a computer system to learn and improve over time", "making products before computerisation, often on human production lines"]}, "answer": 2, "explain": {"en": "machine learning: the ability of a computer system to learn and improve over time.", "uz": "machine learning: the ability of a computer system to learn and improve over time."}}, {"q": {"en": "What does the keyword 'artificial intelligence (AI)' mean?", "uz": "What does the keyword 'artificial intelligence (AI)' mean?"}, "opts": {"en": ["making products before computerisation, often on human production lines", "a software application that uses text to ask questions and help a user", "rapid change in how society works after new machines and computers arrive", "a computer system's ability to develop its own programming from experience"], "uz": ["making products before computerisation, often on human production lines", "a software application that uses text to ask questions and help a user", "rapid change in how society works after new machines and computers arrive", "a computer system's ability to develop its own programming from experience"]}, "answer": 3, "explain": {"en": "artificial intelligence (AI): a computer system's ability to develop its own programming from experience.", "uz": "artificial intelligence (AI): a computer system's ability to develop its own programming from experience."}}, {"q": {"en": "What does the keyword 'traditional manufacturing' mean?", "uz": "What does the keyword 'traditional manufacturing' mean?"}, "opts": {"en": ["rapid change in how society works after new machines and computers arrive", "making products before computerisation, often on human production lines", "a software application that uses text to ask questions and help a user", "a computer system's ability to develop its own programming from experience"], "uz": ["rapid change in how society works after new machines and computers arrive", "making products before computerisation, often on human production lines", "a software application that uses text to ask questions and help a user", "a computer system's ability to develop its own programming from experience"]}, "answer": 1, "explain": {"en": "traditional manufacturing: making products before computerisation, often on human production lines.", "uz": "traditional manufacturing: making products before computerisation, often on human production lines."}}, {"q": {"en": "What does the keyword 'RFID tags' mean?", "uz": "What does the keyword 'RFID tags' mean?"}, "opts": {"en": ["making products before computerisation, often on human production lines", "a software application that uses text to ask questions and help a user", "the ability of a computer system to learn and improve over time", "a technology that uses radio signals to send data to another device"], "uz": ["making products before computerisation, often on human production lines", "a software application that uses text to ask questions and help a user", "the ability of a computer system to learn and improve over time", "a technology that uses radio signals to send data to another device"]}, "answer": 3, "explain": {"en": "RFID tags: a technology that uses radio signals to send data to another device.", "uz": "RFID tags: a technology that uses radio signals to send data to another device."}}, {"q": {"en": "What does the keyword 'chatbot' mean?", "uz": "What does the keyword 'chatbot' mean?"}, "opts": {"en": ["a software application that uses text to ask questions and help a user", "making products before computerisation, often on human production lines", "rapid change in how society works after new machines and computers arrive", "a technology that uses radio signals to send data to another device"], "uz": ["a software application that uses text to ask questions and help a user", "making products before computerisation, often on human production lines", "rapid change in how society works after new machines and computers arrive", "a technology that uses radio signals to send data to another device"]}, "answer": 0, "explain": {"en": "chatbot: a software application that uses text to ask questions and help a user.", "uz": "chatbot: a software application that uses text to ask questions and help a user."}}, {"q": {"en": "What does the keyword 'industrial revolution' mean?", "uz": "What does the keyword 'industrial revolution' mean?"}, "opts": {"en": ["rapid change in how society works after new machines and computers arrive", "a computer system's ability to develop its own programming from experience", "making products before computerisation, often on human production lines", "a software application that uses text to ask questions and help a user"], "uz": ["rapid change in how society works after new machines and computers arrive", "a computer system's ability to develop its own programming from experience", "making products before computerisation, often on human production lines", "a software application that uses text to ask questions and help a user"]}, "answer": 0, "explain": {"en": "industrial revolution: rapid change in how society works after new machines and computers arrive.", "uz": "industrial revolution: rapid change in how society works after new machines and computers arrive."}}, {"q": {"en": "What does the keyword 'Industry 4.0' mean?", "uz": "What does the keyword 'Industry 4.0' mean?"}, "opts": {"en": ["making products before computerisation, often on human production lines", "how industry combines electronics with new technologies such as AI and robotics", "a software application that uses text to ask questions and help a user", "a computer system's ability to develop its own programming from experience"], "uz": ["making products before computerisation, often on human production lines", "how industry combines electronics with new technologies such as AI and robotics", "a software application that uses text to ask questions and help a user", "a computer system's ability to develop its own programming from experience"]}, "answer": 1, "explain": {"en": "Industry 4.0: how industry combines electronics with new technologies such as AI and robotics.", "uz": "Industry 4.0: how industry combines electronics with new technologies such as AI and robotics."}}, {"q": {"en": "A phone's keyboard suggests the next word and improves the more you type. Which concept does this show?", "uz": "A phone's keyboard suggests the next word and improves the more you type. Which concept does this show?"}, "opts": {"en": ["a program that answers a user's questions only in text", "a factory line that builds products entirely by hand", "a tag that sends data to another device by radio signal", "a computer system that improves over time from experience"], "uz": ["a program that answers a user's questions only in text", "a factory line that builds products entirely by hand", "a tag that sends data to another device by radio signal", "a computer system that improves over time from experience"]}, "answer": 3, "explain": {"en": "This is machine learning: the system learns over time from the experiences it encounters.", "uz": "This is machine learning: the system learns over time from the experiences it encounters."}}]}, {"id": "t5", "label": {"en": "5 · Logic circuits", "uz": "5 · Logic circuits"}, "questions": [{"q": {"en": "What does the keyword 'conditional statement' mean?", "uz": "What does the keyword 'conditional statement' mean?"}, "opts": {"en": ["a gate that outputs True when at least one of its inputs is True", "a check that completes to see whether set criteria are True or False", "a gate that outputs True only when both of its inputs are True", "a combination of logic gates that solves a problem in a digital device"], "uz": ["a gate that outputs True when at least one of its inputs is True", "a check that completes to see whether set criteria are True or False", "a gate that outputs True only when both of its inputs are True", "a combination of logic gates that solves a problem in a digital device"]}, "answer": 1, "explain": {"en": "conditional statement: a check that completes to see whether set criteria are True or False.", "uz": "conditional statement: a check that completes to see whether set criteria are True or False."}}, {"q": {"en": "What does the keyword 'conditional operator' mean?", "uz": "What does the keyword 'conditional operator' mean?"}, "opts": {"en": ["a gate that outputs True only when both of its inputs are True", "a symbol such as >, < or = used to compare two values", "a gate with one input that outputs the opposite of that input", "a circuit that turns one or more inputs into one output"], "uz": ["a gate that outputs True only when both of its inputs are True", "a symbol such as >, < or = used to compare two values", "a gate with one input that outputs the opposite of that input", "a circuit that turns one or more inputs into one output"]}, "answer": 1, "explain": {"en": "conditional operator: a symbol such as >, < or = used to compare two values.", "uz": "conditional operator: a symbol such as >, < or = used to compare two values."}}, {"q": {"en": "What does the keyword 'Boolean expression' mean?", "uz": "What does the keyword 'Boolean expression' mean?"}, "opts": {"en": ["a check that completes to see whether set criteria are True or False", "a combination of logic gates that solves a problem in a digital device", "an expression containing conditional operators that describes a logic circuit", "a gate that outputs True when at least one of its inputs is True"], "uz": ["a check that completes to see whether set criteria are True or False", "a combination of logic gates that solves a problem in a digital device", "an expression containing conditional operators that describes a logic circuit", "a gate that outputs True when at least one of its inputs is True"]}, "answer": 2, "explain": {"en": "Boolean expression: an expression containing conditional operators that describes a logic circuit.", "uz": "Boolean expression: an expression containing conditional operators that describes a logic circuit."}}, {"q": {"en": "What does the keyword 'logic circuit' mean?", "uz": "What does the keyword 'logic circuit' mean?"}, "opts": {"en": ["a gate that outputs True when at least one of its inputs is True", "a check that completes to see whether set criteria are True or False", "an expression containing conditional operators that describes a logic circuit", "a combination of logic gates that solves a problem in a digital device"], "uz": ["a gate that outputs True when at least one of its inputs is True", "a check that completes to see whether set criteria are True or False", "an expression containing conditional operators that describes a logic circuit", "a combination of logic gates that solves a problem in a digital device"]}, "answer": 3, "explain": {"en": "logic circuit: a combination of logic gates that solves a problem in a digital device.", "uz": "logic circuit: a combination of logic gates that solves a problem in a digital device."}}, {"q": {"en": "What does the keyword 'logic gate' mean?", "uz": "What does the keyword 'logic gate' mean?"}, "opts": {"en": ["a combination of logic gates that solves a problem in a device", "a symbol such as >, < or = used to compare two values", "a check that completes to see whether criteria are True or False", "a circuit that turns one or more inputs into one output"], "uz": ["a combination of logic gates that solves a problem in a device", "a symbol such as >, < or = used to compare two values", "a check that completes to see whether criteria are True or False", "a circuit that turns one or more inputs into one output"]}, "answer": 3, "explain": {"en": "logic gate: a circuit that turns one or more inputs into one output.", "uz": "logic gate: a circuit that turns one or more inputs into one output."}}, {"q": {"en": "What does the keyword 'AND gate' mean?", "uz": "What does the keyword 'AND gate' mean?"}, "opts": {"en": ["a gate that outputs True only when both of its inputs are True", "a gate with one input that outputs the opposite of that input", "a gate that outputs True when at least one of its inputs is True", "a check that completes to see whether set criteria are True or False"], "uz": ["a gate that outputs True only when both of its inputs are True", "a gate with one input that outputs the opposite of that input", "a gate that outputs True when at least one of its inputs is True", "a check that completes to see whether set criteria are True or False"]}, "answer": 0, "explain": {"en": "AND gate: a gate that outputs True only when both of its inputs are True.", "uz": "AND gate: a gate that outputs True only when both of its inputs are True."}}, {"q": {"en": "What does the keyword 'OR gate' mean?", "uz": "What does the keyword 'OR gate' mean?"}, "opts": {"en": ["a gate that outputs True when at least one of its inputs is True", "a check that completes to see whether set criteria are True or False", "a gate that outputs True only when both of its inputs are True", "a gate with one input that outputs the opposite of that input"], "uz": ["a gate that outputs True when at least one of its inputs is True", "a check that completes to see whether set criteria are True or False", "a gate that outputs True only when both of its inputs are True", "a gate with one input that outputs the opposite of that input"]}, "answer": 0, "explain": {"en": "OR gate: a gate that outputs True when at least one of its inputs is True.", "uz": "OR gate: a gate that outputs True when at least one of its inputs is True."}}, {"q": {"en": "What does the keyword 'NOT gate' mean?", "uz": "What does the keyword 'NOT gate' mean?"}, "opts": {"en": ["a gate with one input that outputs the opposite of that input", "a gate that outputs True when at least one of its inputs is True", "a check that completes to see whether set criteria are True or False", "a gate that outputs True only when both of its inputs are True"], "uz": ["a gate with one input that outputs the opposite of that input", "a gate that outputs True when at least one of its inputs is True", "a check that completes to see whether set criteria are True or False", "a gate that outputs True only when both of its inputs are True"]}, "answer": 0, "explain": {"en": "NOT gate: a gate with one input that outputs the opposite of that input.", "uz": "NOT gate: a gate with one input that outputs the opposite of that input."}}]}];
+
+const UI = {
+  en: {
+    brand: "Computing · Self-check quiz",
+    start_h: "Before you start",
+    start_p: "Choose what to take, enter your name if you like, and press Start. Each answer shows whether you were right and why.",
+    name: "Your name (optional)",
+    scope: "What to take",
+    all: "All 5 topics (40 questions)",
+    start: "Start quiz",
+    next: "Next question",
+    finish: "See results",
+    right: "Correct!",
+    wrong: "Not quite.",
+    answer: "The correct answer is",
+    question_of: (i, n) => "Question " + i + " of " + n,
+    result_h: "Your result",
+    well_done: (name) => "Well done, " + name + "!",
+    score: "Score",
+    pct: "correct",
+    grade: "Grade",
+    by_topic: "By topic",
+    topic: "Topic",
+    right_col: "Correct",
+    review: "Review your answers",
+    you_chose: "Your answer",
+    none: "No answer",
+    try_again: "Try again",
+    change: "Change topics",
+    scale_h: "Grading scale",
+    scale: "86–100% = 5 (Excellent) · 71–85% = 4 (Good) · 56–70% = 3 (Satisfactory) · 0–55% = 2 (Unsatisfactory)",
+    foot: "Your score is shown on this page only and is not saved.",
+    msg_hi: "Excellent. You know this material very well.",
+    msg_mid: "Good work. Review the questions you missed below.",
+    msg_lo: "Keep practising. Read the explanations below, then try again.",
+    g: { 5: "Excellent", 4: "Good", 3: "Satisfactory", 2: "Unsatisfactory" },
+  },
+  uz: {
+    brand: "6-sinf informatika · O'z-o'zini tekshirish testi",
+    start_h: "Boshlashdan oldin",
+    start_p: "Qaysi mavzudan test ishlashni tanlang, xohlasangiz ismingizni yozing va Boshlash tugmasini bosing. Har bir javobdan keyin to'g'ri yoki noto'g'ri ekani va sababi ko'rsatiladi.",
+    name: "Ismingiz (ixtiyoriy)",
+    scope: "Qaysi mavzudan",
+    all: "Barcha 5 mavzu (40 savol)",
+    start: "Testni boshlash",
+    next: "Keyingi savol",
+    finish: "Natijani ko'rish",
+    right: "To'g'ri!",
+    wrong: "Noto'g'ri.",
+    answer: "To'g'ri javob",
+    question_of: (i, n) => i + "-savol, jami " + n,
+    result_h: "Natijangiz",
+    well_done: (name) => "Barakalla, " + name + "!",
+    score: "Ball",
+    pct: "to'g'ri",
+    grade: "Baho",
+    by_topic: "Mavzular bo'yicha",
+    topic: "Mavzu",
+    right_col: "To'g'ri",
+    review: "Javoblaringizni ko'rib chiqing",
+    you_chose: "Sizning javobingiz",
+    none: "Javob berilmagan",
+    try_again: "Qayta ishlash",
+    change: "Mavzuni o'zgartirish",
+    scale_h: "Baholash shkalasi",
+    scale: "86–100% = 5 (a'lo) · 71–85% = 4 (yaxshi) · 56–70% = 3 (qoniqarli) · 0–55% = 2 (qoniqarsiz)",
+    foot: "Natijangiz faqat shu sahifada ko'rinadi va saqlanmaydi.",
+    msg_hi: "A'lo. Bu mavzuni juda yaxshi bilasiz.",
+    msg_mid: "Yaxshi natija. Xato qilgan savollaringizni pastda ko'rib chiqing.",
+    msg_lo: "Mashq qiling. Pastdagi izohlarni o'qib, qayta ishlang.",
+    g: { 5: "a'lo", 4: "yaxshi", 3: "qoniqarli", 2: "qoniqarsiz" },
+  },
+};
+
+const LETTERS = ["A", "B", "C", "D"];
+let lang = "en";
+let state = { screen: "start", name: "", scope: "all", qs: [], i: 0, answers: [] };
+
+const app = document.getElementById("app");
+
+function t(key) { return UI[lang][key]; }
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined && text !== null) e.textContent = text;
+  return e;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function gradeOf(pct) {
+  if (pct >= 86) return 5;
+  if (pct >= 71) return 4;
+  if (pct >= 56) return 3;
+  return 2;
+}
+
+function topicById(id) { return DATA.find((x) => x.id === id); }
+
+function setStaticText() {
+  document.getElementById("brand").textContent = UI[lang].brand;
+  document.getElementById("foot").textContent = UI[lang].foot;
+  document.documentElement.lang = lang === "uz" ? "uz" : "en";
+  document.getElementById("lang-en").setAttribute("aria-pressed", String(lang === "en"));
+  document.getElementById("lang-uz").setAttribute("aria-pressed", String(lang === "uz"));
+}
+
+function setLang(l) {
+  lang = l;
+  setStaticText();
+  render();
+}
+
+function render() {
+  if (state.screen === "start") renderStart();
+  else if (state.screen === "quiz") renderQuestion();
+  else renderResults();
+}
+
+function startQuiz(scope) {
+  const pool = [];
+  const topics = scope === "all" ? DATA : DATA.filter((x) => x.id === scope);
+  topics.forEach((tp) => tp.questions.forEach((q) => pool.push({ topic: tp.id, q, order: shuffle([0, 1, 2, 3]) })));
+  state = { screen: "quiz", name: state.name, scope, qs: scope === "all" ? shuffle(pool) : pool, i: 0, answers: [] };
+  render();
+}
+
+function renderStart() {
+  app.textContent = "";
+  app.append(el("h2", null, t("start_h")), el("p", "muted", t("start_p")));
+
+  const nameLabel = el("label", null, t("name"));
+  nameLabel.setAttribute("for", "name");
+  const nameInput = el("input");
+  nameInput.type = "text";
+  nameInput.id = "name";
+  nameInput.maxLength = 40;
+  nameInput.value = state.name;
+
+  const scopeLabel = el("label", null, t("scope"));
+  scopeLabel.setAttribute("for", "scope");
+  const sel = el("select");
+  sel.id = "scope";
+  const optAll = el("option", null, t("all"));
+  optAll.value = "all";
+  sel.appendChild(optAll);
+  DATA.forEach((tp) => {
+    const o = el("option", null, tp.label[lang] + " (" + tp.questions.length + ")");
+    o.value = tp.id;
+    sel.appendChild(o);
+  });
+  sel.value = state.scope;
+
+  const scale = el("div", "scale");
+  scale.append(el("strong", null, t("scale_h") + ": "), el("span", null, t("scale")));
+
+  const actions = el("div", "actions");
+  const btn = el("button", "btn", t("start"));
+  btn.type = "button";
+  btn.addEventListener("click", () => {
+    state.name = nameInput.value.trim();
+    startQuiz(sel.value);
+  });
+  actions.appendChild(btn);
+
+  app.append(nameLabel, nameInput, scopeLabel, sel, scale, actions);
+  nameInput.focus();
+}
+
+function renderQuestion() {
+  app.textContent = "";
+  const n = state.qs.length;
+  const item = state.qs[state.i];
+  const q = item.q;
+  const tp = topicById(item.topic);
+  const prev = state.answers[state.i];
+
+  const top = el("div", "progress-top");
+  top.append(el("span", null, tp.label[lang]), el("span", null, t("question_of")(state.i + 1, n)));
+  const bar = el("div", "bar");
+  const fill = el("div");
+  fill.style.width = (state.i / n * 100) + "%";
+  bar.appendChild(fill);
+
+  const h = el("h2", null, q.q[lang]);
+  const opts = el("div", "options");
+  const buttons = [];
+  const fb = el("div", "feedback");
+  const next = el("button", "btn", state.i === n - 1 ? t("finish") : t("next"));
+  next.type = "button";
+  next.disabled = !prev;
+
+  const correctPos = item.order.indexOf(q.answer);
+
+  function showAnswer(chosenPos) {
+    const orig = item.order[chosenPos];
+    const right = orig === q.answer;
+    buttons.forEach((b, k) => {
+      b.disabled = true;
+      if (k === correctPos) b.classList.add("correct");
+    });
+    if (!right) buttons[chosenPos].classList.add("wrong");
+    fb.className = "feedback show " + (right ? "good" : "bad");
+    fb.textContent = "";
+    fb.append(
+      el("strong", null, right ? t("right") : t("wrong") + " " + t("answer") + ": " + LETTERS[correctPos] + ") " + q.opts[lang][q.answer]),
+      el("span", null, q.explain[lang])
+    );
+    next.disabled = false;
+  }
+
+  item.order.forEach((orig, pos) => {
+    const b = el("button", "opt");
+    b.type = "button";
+    b.append(el("span", "letter", LETTERS[pos]), el("span", null, q.opts[lang][orig]));
+    b.addEventListener("click", () => {
+      if (state.answers[state.i]) return;
+      state.answers[state.i] = { chosenPos: pos, right: orig === q.answer, topic: item.topic };
+      showAnswer(pos);
+      next.focus();
+    });
+    buttons.push(b);
+    opts.appendChild(b);
+  });
+
+  if (prev) showAnswer(prev.chosenPos);
+
+  next.addEventListener("click", () => {
+    if (state.i === n - 1) { renderResults(); return; }
+    state.i++;
+    renderQuestion();
+  });
+
+  const actions = el("div", "actions");
+  actions.appendChild(next);
+  app.append(top, bar, h, opts, fb, actions);
+}
+
+function renderResults() {
+  app.textContent = "";
+  const n = state.qs.length;
+  const score = state.answers.filter((a) => a && a.right).length;
+  const pct = Math.round(score / n * 100);
+  const g = gradeOf(pct);
+  const msg = pct >= 86 ? t("msg_hi") : (pct >= 56 ? t("msg_mid") : t("msg_lo"));
+
+  app.append(el("h2", null, state.name ? t("well_done")(state.name) : t("result_h")));
+  app.append(el("div", "score-big", score + " / " + n));
+  app.append(el("p", "muted", pct + "% " + t("pct") + ". " + msg));
+  app.append(el("div", "grade", t("grade") + ": " + g + " · " + UI[lang].g[g]));
+
+  // Per-topic breakdown
+  const scopeTopics = state.scope === "all" ? DATA : DATA.filter((x) => x.id === state.scope);
+  const tbl = el("table");
+  const thead = el("tr");
+  thead.append(el("th", null, t("topic")), el("th", "num", t("right_col")), el("th", "num", "%"), el("th", "num", t("grade")));
+  tbl.appendChild(thead);
+  scopeTopics.forEach((tp) => {
+    const idxs = state.qs.map((it, k) => (it.topic === tp.id ? k : -1)).filter((k) => k >= 0);
+    const right = idxs.filter((k) => state.answers[k] && state.answers[k].right).length;
+    const tot = idxs.length;
+    const p = tot ? Math.round(right / tot * 100) : 0;
+    const tr = el("tr");
+    tr.append(el("td", null, tp.label[lang]), el("td", "num", right + " / " + tot), el("td", "num", p + "%"), el("td", "num", String(gradeOf(p))));
+    tbl.appendChild(tr);
+  });
+  app.append(tbl);
+
+  // Review
+  const review = el("div", "review");
+  review.append(el("h2", null, t("review")));
+  const ol = el("ol");
+  state.qs.forEach((item, k) => {
+    const q = item.q;
+    const a = state.answers[k];
+    const li = el("li");
+    li.append(el("div", "q", q.q[lang]));
+    const chosenText = a ? q.opts[lang][item.order[a.chosenPos]] : t("none");
+    const ans = el("div", "ans");
+    ans.append(
+      el("span", a && a.right ? "yes" : "no", a && a.right ? t("right") : t("wrong")),
+      el("span", null, " · " + t("you_chose") + ": " + chosenText + " · " + t("answer") + ": " + q.opts[lang][q.answer])
+    );
+    li.append(ans, el("div", "why", q.explain[lang]));
+    ol.appendChild(li);
+  });
+  review.appendChild(ol);
+  app.appendChild(review);
+
+  const actions = el("div", "actions");
+  const again = el("button", "btn", t("try_again"));
+  again.type = "button";
+  again.addEventListener("click", () => startQuiz(state.scope));
+  const change = el("button", "btn ghost", t("change"));
+  change.type = "button";
+  change.addEventListener("click", () => { state.screen = "start"; render(); });
+  actions.append(change, again);
+  app.appendChild(actions);
+}
+
+document.getElementById("lang-en").addEventListener("click", () => setLang("en"));
+document.getElementById("lang-uz").addEventListener("click", () => setLang("uz"));
+setStaticText();
+state.screen = "start";
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Computing Quiz</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f4f2ec;
+  --card: #ffffff;
+  --ink: #1d2430;
+  --muted: #5d6675;
+  --line: #d9d6cc;
+  --accent: #0d5c63;
+  --ok: #1e7a4a;
+  --ok-bg: #e7f4ec;
+  --bad: #b42318;
+  --bad-bg: #fbe9e7;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.wrap { max-width: 680px; margin: 0 auto; padding: 24px 16px 40px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.brand { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.langs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
+.langs button {
+  font: inherit; font-size: 14px; border: none; background: transparent; color: var(--muted);
+  padding: 7px 14px; cursor: pointer;
+}
+.langs button[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 600; }
+.langs button:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+h1, h2 {
+  font-family: "IBM Plex Serif", Georgia, serif;
+  font-weight: 600; line-height: 1.25; text-wrap: balance; margin: 0;
+}
+h1 { font-size: 28px; margin-bottom: 6px; }
+h2 { font-size: 21px; margin-bottom: 16px; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 24px; box-shadow: 0 1px 2px rgba(29, 36, 48, .05);
+}
+.muted { color: var(--muted); font-size: 15px; }
+.progress-top { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--muted); margin-bottom: 8px; font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+.bar { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; margin-bottom: 22px; }
+.bar > div { height: 100%; background: var(--accent); width: 0; transition: width .3s ease; }
+label { display: block; font-weight: 500; margin: 14px 0 6px; }
+input[type="text"], select {
+  width: 100%; font: inherit; padding: 11px 12px; border: 1px solid var(--line);
+  border-radius: 8px; background: #fff; color: var(--ink);
+}
+input[type="text"]:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.btn {
+  font: inherit; font-weight: 600; border: none; border-radius: 8px; padding: 12px 20px;
+  background: var(--accent); color: #fff; cursor: pointer;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.btn:disabled { background: #a9b4b6; cursor: not-allowed; filter: none; }
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.options { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 4px; }
+.opt {
+  display: flex; align-items: flex-start; gap: 12px; width: 100%; text-align: left;
+  font: inherit; color: var(--ink); background: #fff; border: 1px solid var(--line);
+  border-radius: 8px; padding: 12px 14px; cursor: pointer;
+}
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.opt:disabled { cursor: default; }
+.opt .letter {
+  flex: 0 0 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--paper); border: 1px solid var(--line); font-weight: 600; font-size: 13px; color: var(--muted);
+}
+.opt.correct { background: var(--ok-bg); border-color: var(--ok); }
+.opt.correct .letter { background: var(--ok); border-color: var(--ok); color: #fff; }
+.opt.wrong { background: var(--bad-bg); border-color: var(--bad); }
+.opt.wrong .letter { background: var(--bad); border-color: var(--bad); color: #fff; }
+.feedback { margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 15px; display: none; }
+.feedback.show { display: block; }
+.feedback.good { background: var(--ok-bg); color: #145a34; }
+.feedback.bad { background: var(--bad-bg); color: #7a1a12; }
+.feedback strong { display: block; margin-bottom: 4px; }
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.score-big { font-family: "IBM Plex Serif", Georgia, serif; font-size: 44px; font-weight: 600; color: var(--accent); margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+.grade {
+  display: inline-block; margin: 8px 0 4px; padding: 6px 12px; border-radius: 999px;
+  background: var(--accent); color: #fff; font-weight: 600; font-size: 15px;
+}
+table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 15px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+th { font-weight: 600; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .03em; }
+td.num, th.num { text-align: right; }
+.review { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 14px; }
+.review ol { padding-left: 22px; margin: 8px 0 0; }
+.review li { margin-bottom: 14px; }
+.review .q { font-weight: 500; }
+.review .ans { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.review .yes { color: var(--ok); font-weight: 600; }
+.review .no { color: var(--bad); font-weight: 600; }
+.review .why { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.scale { font-size: 14px; color: var(--muted); margin: 14px 0 0; padding: 10px 12px; background: var(--paper); border-radius: 8px; }
+.foot { margin-top: 18px; font-size: 13px; color: var(--muted); text-align: center; }
+@media (max-width: 420px) { h1 { font-size: 24px; } .card { padding: 18px; } }
+@media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="brand" id="brand"></span>
+    <div class="langs" role="group" aria-label="Language">
+      <button type="button" id="lang-en" aria-pressed="true">English</button>
+      <button type="button" id="lang-uz" aria-pressed="false">O'zbekcha</button>
+    </div>
+  </div>
+  <div id="app" class="card" aria-live="polite"></div>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+const DATA = [{"id": "t1", "label": {"en": "1 · Digitising sound", "uz": "1-mavzu · Ovozni raqamlashtirish"}, "questions": [{"q": {"en": "What does the keyword 'analogue-to-digital converter (ADC)' mean?", "uz": "'analog-raqamli o'zgartiruvchi (ADC)' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["a device that turns analogue signals into digital data", "instructions made only of 0s and 1s that the CPU reads", "the impression and comfort a person gets using a device", "a single letter, number or symbol stored as one unit"], "uz": ["analog signalni raqamli ma'lumotga aylantiruvchi qurilma", "protsessor o'qiydigan, faqat 0 va 1 lardan iborat buyruqlar", "insonning qurilmadan foydalanishdagi taassuroti va qulayligi", "bitta harf, raqam yoki ramz, bitta birlik sifatida saqlanadi"]}, "answer": 0, "explain": {"en": "analogue-to-digital converter (ADC): a device that turns analogue signals into digital data.", "uz": "analog-raqamli o'zgartiruvchi (ADC): analog signalni raqamli ma'lumotga aylantiruvchi qurilma."}}, {"q": {"en": "What does the keyword 'sampling' mean?", "uz": "'namuna olish' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["measuring a sound wave's height at regular time intervals", "instructions made only of 0s and 1s that the CPU reads", "the impression and comfort a person gets using a device", "a single letter, number or symbol stored as one unit"], "uz": ["ovoz to'lqinining balandligini muntazam vaqt oralig'ida o'lchash", "protsessor o'qiydigan, faqat 0 va 1 lardan iborat buyruqlar", "insonning qurilmadan foydalanishdagi taassuroti va qulayligi", "bitta harf, raqam yoki ramz, bitta birlik sifatida saqlanadi"]}, "answer": 0, "explain": {"en": "sampling: measuring a sound wave's height at regular time intervals.", "uz": "namuna olish: ovoz to'lqinining balandligini muntazam vaqt oralig'ida o'lchash."}}, {"q": {"en": "What does the keyword 'quantization' mean?", "uz": "'kvantlash' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["a continuous wave that varies smoothly, such as natural sound", "a set of instructions that repeats until a condition is met", "rounding each sampled measurement to the nearest whole number", "the impression and comfort a person gets using a device"], "uz": ["silliq o'zgaradigan uzluksiz to'lqin, masalan tabiiy tovush", "shart bajarilguncha takrorlanadigan buyruqlar to'plami", "olingan har bir namunani eng yaqin butun songa yaxlitlash", "insonning qurilmadan foydalanishdagi taassuroti va qulayligi"]}, "answer": 2, "explain": {"en": "quantization: rounding each sampled measurement to the nearest whole number.", "uz": "kvantlash: olingan har bir namunani eng yaqin butun songa yaxlitlash."}}, {"q": {"en": "What does the keyword 'sample rate' mean?", "uz": "'namuna olish chastotasi' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["instructions made only of 0s and 1s that the CPU reads", "the number of samples taken per second, measured in Hz", "the impression and comfort a person gets using a device", "a single letter, number or symbol stored as one unit"], "uz": ["protsessor o'qiydigan, faqat 0 va 1 lardan iborat buyruqlar", "bir soniyada olinadigan namunalar soni, Hz da o'lchanadi", "insonning qurilmadan foydalanishdagi taassuroti va qulayligi", "bitta harf, raqam yoki ramz, bitta birlik sifatida saqlanadi"]}, "answer": 1, "explain": {"en": "sample rate: the number of samples taken per second, measured in Hz.", "uz": "namuna olish chastotasi: bir soniyada olinadigan namunalar soni, Hz da o'lchanadi."}}, {"q": {"en": "What does the keyword 'bit depth' mean?", "uz": "'bit chuqurligi' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["translates and runs the program one line at a time", "a group of eight bits of data, such as 01010011", "a single letter, number or symbol stored as one unit", "the number of bits used to record each sample"], "uz": ["dasturni qatorma-qator tarjima qilib, shu zahoti bajaradi", "sakkiz bitdan iborat ma'lumot guruhi, masalan 01010011", "bitta harf, raqam yoki ramz, bitta birlik sifatida saqlanadi", "har bir namunani yozish uchun ishlatiladigan bitlar soni"]}, "answer": 3, "explain": {"en": "bit depth: the number of bits used to record each sample.", "uz": "bit chuqurligi: har bir namunani yozish uchun ishlatiladigan bitlar soni."}}, {"q": {"en": "What does the keyword 'encoding' mean?", "uz": "'ikkilik kodga o'tkazish' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["measuring a sound wave's height at regular time intervals", "converting each whole number into binary code of 0s and 1s", "the impression and comfort a person gets using a device", "a single letter, number or symbol stored as one unit"], "uz": ["ovoz to'lqinining balandligini muntazam vaqt oralig'ida o'lchash", "har bir butun sonni 0 va 1 lardan iborat ikkilik kodga aylantirish", "insonning qurilmadan foydalanishdagi taassuroti va qulayligi", "bitta harf, raqam yoki ramz, bitta birlik sifatida saqlanadi"]}, "answer": 1, "explain": {"en": "encoding: converting each whole number into binary code of 0s and 1s.", "uz": "ikkilik kodga o'tkazish: har bir butun sonni 0 va 1 lardan iborat ikkilik kodga aylantirish."}}, {"q": {"en": "What does the keyword 'analogue signal' mean?", "uz": "'analog signal' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["rounding each sampled measurement to the nearest whole number", "a continuous wave that varies smoothly, such as natural sound", "a set of instructions that repeats until a condition is met", "the impression and comfort a person gets using a device"], "uz": ["olingan har bir namunani eng yaqin butun songa yaxlitlash", "silliq o'zgaradigan uzluksiz to'lqin, masalan tabiiy tovush", "shart bajarilguncha takrorlanadigan buyruqlar to'plami", "insonning qurilmadan foydalanishdagi taassuroti va qulayligi"]}, "answer": 1, "explain": {"en": "analogue signal: a continuous wave that varies smoothly, such as natural sound.", "uz": "analog signal: silliq o'zgaradigan uzluksiz to'lqin, masalan tabiiy tovush."}}, {"q": {"en": "A 1-minute, 44,100 Hz, 16-bit stereo audio file is uncompressed. What is its size in MiB?", "uz": "Davomiyligi 1 daqiqa, 44 100 Hz, 16-bitli stereo, siqilmagan audio fayl necha MiB?"}, "opts": {"en": ["10.09 MiB", "10.09 MB", "84.67 MiB", "5.04 MiB"], "uz": ["10,09 MiB", "10,09 MB", "84,67 MiB", "5,04 MiB"]}, "answer": 0, "explain": {"en": "44,100 × 16 × 60 × 2 = 84,672,000 bits = 10,584,000 bytes = 10.09 MiB.", "uz": "44 100 × 16 × 60 × 2 = 84 672 000 bit = 10 584 000 bayt = 10,09 MiB."}}]}, {"id": "t2", "label": {"en": "2 · Compilers and interpreters", "uz": "2-mavzu · Kompilyator va interpretator"}, "questions": [{"q": {"en": "What does the keyword 'translator' mean?", "uz": "'translyator' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["rounding each sampled measurement to the nearest whole number", "a continuous wave that varies smoothly, such as natural sound", "a program that converts code into a language the computer understands", "a set of instructions that repeats until a condition is met"], "uz": ["olingan har bir namunani eng yaqin butun songa yaxlitlash", "silliq o'zgaradigan uzluksiz to'lqin, masalan tabiiy tovush", "kodni kompyuter tushunadigan tilga o'giruvchi dastur", "shart bajarilguncha takrorlanadigan buyruqlar to'plami"]}, "answer": 2, "explain": {"en": "translator: a program that converts code into a language the computer understands.", "uz": "translyator: kodni kompyuter tushunadigan tilga o'giruvchi dastur."}}, {"q": {"en": "What does the keyword 'compiler' mean?", "uz": "'kompilyator' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["translates the whole program into machine code before running it", "converting each whole number into binary code of 0s and 1s", "an early model of a product, made to test and find design flaws", "designing a device to suit the human body and reduce strain"], "uz": ["dasturni ishga tushirishdan oldin butunlay mashina koditiga tarjima qiladi", "har bir butun sonni 0 va 1 lardan iborat ikkilik kodga aylantirish", "mahsulotning dastlabki namunasi, kamchiliklarni topish uchun sinov modeli", "qurilmani inson tanasiga mos ravishda loyihalash va zo'riqishni kamaytirish"]}, "answer": 0, "explain": {"en": "compiler: translates the whole program into machine code before running it.", "uz": "kompilyator: dasturni ishga tushirishdan oldin butunlay mashina koditiga tarjima qiladi."}}, {"q": {"en": "What does the keyword 'interpreter' mean?", "uz": "'interpretator' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["translates and runs the program one line at a time", "a device that turns analogue signals into digital data", "the number of samples taken per second, measured in Hz", "instructions made only of 0s and 1s that the CPU reads"], "uz": ["dasturni qatorma-qator tarjima qilib, shu zahoti bajaradi", "analog signalni raqamli ma'lumotga aylantiruvchi qurilma", "bir soniyada olinadigan namunalar soni, Hz da o'lchanadi", "protsessor o'qiydigan, faqat 0 va 1 lardan iborat buyruqlar"]}, "answer": 0, "explain": {"en": "interpreter: translates and runs the program one line at a time.", "uz": "interpretator: dasturni qatorma-qator tarjima qilib, shu zahoti bajaradi."}}, {"q": {"en": "What does the keyword 'machine code' mean?", "uz": "'mashina kodi' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["a device that turns analogue signals into digital data", "the impression and comfort a person gets using a device", "a single letter, number or symbol stored as one unit", "instructions made only of 0s and 1s that the CPU reads"], "uz": ["analog signalni raqamli ma'lumotga aylantiruvchi qurilma", "insonning qurilmadan foydalanishdagi taassuroti va qulayligi", "bitta harf, raqam yoki ramz, bitta birlik sifatida saqlanadi", "protsessor o'qiydigan, faqat 0 va 1 lardan iborat buyruqlar"]}, "answer": 3, "explain": {"en": "machine code: instructions made only of 0s and 1s that the CPU reads.", "uz": "mashina kodi: protsessor o'qiydigan, faqat 0 va 1 lardan iborat buyruqlar."}}, {"q": {"en": "What does the keyword 'executable file' mean?", "uz": "'tayyor bajariluvchi fayl' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["measuring a sound wave's height at regular time intervals", "converting each whole number into binary code of 0s and 1s", "a ready translated file that the CPU can run directly", "half a byte: a group of four bits used as one unit"], "uz": ["ovoz to'lqinining balandligini muntazam vaqt oralig'ida o'lchash", "har bir butun sonni 0 va 1 lardan iborat ikkilik kodga aylantirish", "protsessor to'g'ridan-to'g'ri bajara oladigan tayyor tarjima qilingan fayl", "yarim bayt: bitta birlik sifatida ishlatiladigan to'rt bitli guruh"]}, "answer": 2, "explain": {"en": "executable file: a ready translated file that the CPU can run directly.", "uz": "tayyor bajariluvchi fayl: protsessor to'g'ridan-to'g'ri bajara oladigan tayyor tarjima qilingan fayl."}}, {"q": {"en": "What does the keyword 'loop' mean?", "uz": "'sikl' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["a set of instructions that repeats until a condition is met", "a device that turns analogue signals into digital data", "the number of samples taken per second, measured in Hz", "instructions made only of 0s and 1s that the CPU reads"], "uz": ["shart bajarilguncha takrorlanadigan buyruqlar to'plami", "analog signalni raqamli ma'lumotga aylantiruvchi qurilma", "bir soniyada olinadigan namunalar soni, Hz da o'lchanadi", "protsessor o'qiydigan, faqat 0 va 1 lardan iborat buyruqlar"]}, "answer": 0, "explain": {"en": "loop: a set of instructions that repeats until a condition is met.", "uz": "sikl: shart bajarilguncha takrorlanadigan buyruqlar to'plami."}}, {"q": {"en": "A compiler and an interpreter both translate one loop line that prints 'Hello' 1000 times. Which one translates that line only once?", "uz": "Kompilyator va interpretator bir xil sikl qatorini (1000 marta 'Salom' chiqaruvchi) tarjima qiladi. Qaysi biri uni faqat bir marta tarjima qiladi?"}, "opts": {"en": ["a compiler, which translates the whole program once", "an interpreter, which re-translates the loop every time", "a text editor, which only displays the program code", "a router, which connects the program to the network"], "uz": ["kompilyator, u dasturni bir marta butunlay tarjima qiladi", "interpretator, u sikl satrini har safar qayta tarjima qiladi", "matn muharriri, u faqat dastur kodini ko'rsatib turadi", "router, u dasturni tarmoq orqali boshqa joyga ulaydi"]}, "answer": 0, "explain": {"en": "The compiler translates the single loop line once, then the computer runs that translation 1000 times.", "uz": "Kompilyator sikl qatorini bir marta tarjima qiladi, keyin kompyuter tayyor tarjimani 1000 marta bajaradi."}}, {"q": {"en": "A program has an error on line 5. Which translator stops at line 5 and shows the error right away?", "uz": "Dasturning 5-qatorida xato bor. Qaysi translyator 5-qatorga yetganda to'xtaydi va xatoni darhol ko'rsatadi?"}, "opts": {"en": ["a compiler, which lists all errors at the very end", "a router, which sends the error to the network", "an interpreter, which runs code line by line", "a text editor, which only saves the file"], "uz": ["kompilyator, u xatolarni faqat oxirida ro'yxat qiladi", "router, u xatoni tarmoq orqali boshqa joyga yuboradi", "interpretator, u kodni qatorma-qator bajaradi", "matn muharriri, u faqat faylni xotiraga saqlaydi"]}, "answer": 2, "explain": {"en": "An interpreter translates and runs one line at a time, so it stops when it reaches the error.", "uz": "Interpretator kodni qatorma-qator tarjima qilib bajaradi, shuning uchun xatoga yetganda to'xtaydi."}}]}, {"id": "t3", "label": {"en": "3 · Designing digital devices", "uz": "3-mavzu · Raqamli qurilmalar dizayni"}, "questions": [{"q": {"en": "What does the keyword 'prototype' mean?", "uz": "'prototip' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["converting each whole number into binary code of 0s and 1s", "translates the whole program into machine code before running it", "designing a device to suit the human body and reduce strain", "an early model of a product, made to test and find design flaws"], "uz": ["har bir butun sonni 0 va 1 lardan iborat ikkilik kodga aylantirish", "dasturni ishga tushirishdan oldin butunlay mashina koditiga tarjima qiladi", "qurilmani inson tanasiga mos ravishda loyihalash va zo'riqishni kamaytirish", "mahsulotning dastlabki namunasi, kamchiliklarni topish uchun sinov modeli"]}, "answer": 3, "explain": {"en": "prototype: an early model of a product, made to test and find design flaws.", "uz": "prototip: mahsulotning dastlabki namunasi, kamchiliklarni topish uchun sinov modeli."}}, {"q": {"en": "What does the keyword 'user experience (UX)' mean?", "uz": "'foydalanuvchi tajribasi (UX)' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["a device that turns analogue signals into digital data", "the impression and comfort a person gets using a device", "instructions made only of 0s and 1s that the CPU reads", "a single letter, number or symbol stored as one unit"], "uz": ["analog signalni raqamli ma'lumotga aylantiruvchi qurilma", "insonning qurilmadan foydalanishdagi taassuroti va qulayligi", "protsessor o'qiydigan, faqat 0 va 1 lardan iborat buyruqlar", "bitta harf, raqam yoki ramz, bitta birlik sifatida saqlanadi"]}, "answer": 1, "explain": {"en": "user experience (UX): the impression and comfort a person gets using a device.", "uz": "foydalanuvchi tajribasi (UX): insonning qurilmadan foydalanishdagi taassuroti va qulayligi."}}, {"q": {"en": "What does the keyword 'accessibility' mean?", "uz": "'foydalanish imkoniyati' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["translates the whole program into machine code before running it", "an international organisation that develops internet and web standards", "letting users perform tasks while time, errors and feedback are recorded", "making devices usable by people with different physical or sensory abilities"], "uz": ["dasturni ishga tushirishdan oldin butunlay mashina koditiga tarjima qiladi", "internet va veb-saytlar uchun standartlar ishlab chiqaruvchi xalqaro tashkilot", "foydalanuvchilar vazifalarni bajarishi, vaqt, xato va fikrlar yozib olinishi", "turli jismoniy va sezgi imkoniyatlariga ega odamlar foydalanishi uchun sharoit yaratish"]}, "answer": 3, "explain": {"en": "accessibility: making devices usable by people with different physical or sensory abilities.", "uz": "foydalanish imkoniyati: turli jismoniy va sezgi imkoniyatlariga ega odamlar foydalanishi uchun sharoit yaratish."}}, {"q": {"en": "What does the keyword 'ergonomics' mean?", "uz": "'ergonomika' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["converting each whole number into binary code of 0s and 1s", "designing a device to suit the human body and reduce strain", "translates the whole program into machine code before running it", "an early model of a product, made to test and find design flaws"], "uz": ["har bir butun sonni 0 va 1 lardan iborat ikkilik kodga aylantirish", "qurilmani inson tanasiga mos ravishda loyihalash va zo'riqishni kamaytirish", "dasturni ishga tushirishdan oldin butunlay mashina koditiga tarjima qiladi", "mahsulotning dastlabki namunasi, kamchiliklarni topish uchun sinov modeli"]}, "answer": 1, "explain": {"en": "ergonomics: designing a device to suit the human body and reduce strain.", "uz": "ergonomika: qurilmani inson tanasiga mos ravishda loyihalash va zo'riqishni kamaytirish."}}, {"q": {"en": "What does the keyword 'haptic technology' mean?", "uz": "'haptik texnologiya' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["the number of bits used to record each sample", "translates and runs the program one line at a time", "a group of eight bits of data, such as 01010011", "feedback given through vibrations or touch"], "uz": ["har bir namunani yozish uchun ishlatiladigan bitlar soni", "dasturni qatorma-qator tarjima qilib, shu zahoti bajaradi", "sakkiz bitdan iborat ma'lumot guruhi, masalan 01010011", "tebranish yoki teginish orqali beriladigan javob"]}, "answer": 3, "explain": {"en": "haptic technology: feedback given through vibrations or touch.", "uz": "haptik texnologiya: tebranish yoki teginish orqali beriladigan javob."}}, {"q": {"en": "What does the keyword 'augmented reality (AR)' mean?", "uz": "'kengaytirilgan reallik (AR)' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["a device that turns analogue signals into digital data", "the number of samples taken per second, measured in Hz", "a set of instructions that repeats until a condition is met", "displaying digital objects over the real-world environment"], "uz": ["analog signalni raqamli ma'lumotga aylantiruvchi qurilma", "bir soniyada olinadigan namunalar soni, Hz da o'lchanadi", "shart bajarilguncha takrorlanadigan buyruqlar to'plami", "raqamli obyektlarni haqiqiy muhit ustida ko'rsatish"]}, "answer": 3, "explain": {"en": "augmented reality (AR): displaying digital objects over the real-world environment.", "uz": "kengaytirilgan reallik (AR): raqamli obyektlarni haqiqiy muhit ustida ko'rsatish."}}, {"q": {"en": "What does the keyword 'W3C' mean?", "uz": "'W3C' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["translates the whole program into machine code before running it", "an early model of a product, made to test and find design flaws", "letting users perform tasks while time, errors and feedback are recorded", "an international organisation that develops internet and web standards"], "uz": ["dasturni ishga tushirishdan oldin butunlay mashina koditiga tarjima qiladi", "mahsulotning dastlabki namunasi, kamchiliklarni topish uchun sinov modeli", "foydalanuvchilar vazifalarni bajarishi, vaqt, xato va fikrlar yozib olinishi", "internet va veb-saytlar uchun standartlar ishlab chiqaruvchi xalqaro tashkilot"]}, "answer": 3, "explain": {"en": "W3C: an international organisation that develops internet and web standards.", "uz": "W3C: internet va veb-saytlar uchun standartlar ishlab chiqaruvchi xalqaro tashkilot."}}, {"q": {"en": "What does the keyword 'usability testing' mean?", "uz": "'foydalanuvchilar bilan sinov' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["letting users perform tasks while time, errors and feedback are recorded", "translates the whole program into machine code before running it", "an early model of a product, made to test and find design flaws", "an international organisation that develops internet and web standards"], "uz": ["foydalanuvchilar vazifalarni bajarishi, vaqt, xato va fikrlar yozib olinishi", "dasturni ishga tushirishdan oldin butunlay mashina koditiga tarjima qiladi", "mahsulotning dastlabki namunasi, kamchiliklarni topish uchun sinov modeli", "internet va veb-saytlar uchun standartlar ishlab chiqaruvchi xalqaro tashkilot"]}, "answer": 0, "explain": {"en": "usability testing: letting users perform tasks while time, errors and feedback are recorded.", "uz": "foydalanuvchilar bilan sinov: foydalanuvchilar vazifalarni bajarishi, vaqt, xato va fikrlar yozib olinishi."}}]}, {"id": "t4", "label": {"en": "4 · Data storage", "uz": "4-mavzu · Ma'lumotlarni saqlash"}, "questions": [{"q": {"en": "What does the keyword 'bit' mean?", "uz": "'bit' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["a device that turns analogue signals into digital data", "the number of samples taken per second, measured in Hz", "a single binary digit with a value of either 0 or 1", "the number of bits used to record each sample"], "uz": ["analog signalni raqamli ma'lumotga aylantiruvchi qurilma", "bir soniyada olinadigan namunalar soni, Hz da o'lchanadi", "yagona ikkilik raqam, qiymati 0 yoki 1 bo'lgan", "har bir namunani yozish uchun ishlatiladigan bitlar soni"]}, "answer": 2, "explain": {"en": "bit: a single binary digit with a value of either 0 or 1.", "uz": "bit: yagona ikkilik raqam, qiymati 0 yoki 1 bo'lgan."}}, {"q": {"en": "What does the keyword 'byte' mean?", "uz": "'bayt' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["a device that turns analogue signals into digital data", "a group of eight bits of data, such as 01010011", "the number of samples taken per second, measured in Hz", "instructions made only of 0s and 1s that the CPU reads"], "uz": ["analog signalni raqamli ma'lumotga aylantiruvchi qurilma", "sakkiz bitdan iborat ma'lumot guruhi, masalan 01010011", "bir soniyada olinadigan namunalar soni, Hz da o'lchanadi", "protsessor o'qiydigan, faqat 0 va 1 lardan iborat buyruqlar"]}, "answer": 1, "explain": {"en": "byte: a group of eight bits of data, such as 01010011.", "uz": "bayt: sakkiz bitdan iborat ma'lumot guruhi, masalan 01010011."}}, {"q": {"en": "What does the keyword 'nibble' mean?", "uz": "'yarim bayt (nibble)' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["instructions made only of 0s and 1s that the CPU reads", "the impression and comfort a person gets using a device", "half a byte: a group of four bits used as one unit", "a single letter, number or symbol stored as one unit"], "uz": ["protsessor o'qiydigan, faqat 0 va 1 lardan iborat buyruqlar", "insonning qurilmadan foydalanishdagi taassuroti va qulayligi", "yarim bayt: bitta birlik sifatida ishlatiladigan to'rt bitli guruh", "bitta harf, raqam yoki ramz, bitta birlik sifatida saqlanadi"]}, "answer": 2, "explain": {"en": "nibble: half a byte: a group of four bits used as one unit.", "uz": "yarim bayt (nibble): yarim bayt: bitta birlik sifatida ishlatiladigan to'rt bitli guruh."}}, {"q": {"en": "What does the keyword 'transistor' mean?", "uz": "'tranzistor' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["instructions made only of 0s and 1s that the CPU reads", "a tiny switch that is ON for 1 and OFF for 0", "half a byte: a group of four bits used as one unit", "a single letter, number or symbol stored as one unit"], "uz": ["protsessor o'qiydigan, faqat 0 va 1 lardan iborat buyruqlar", "YONIQ (ON) holatda 1, O'CHIQ (OFF) holatda 0 ni bildiruvchi mitti kalit", "yarim bayt: bitta birlik sifatida ishlatiladigan to'rt bitli guruh", "bitta harf, raqam yoki ramz, bitta birlik sifatida saqlanadi"]}, "answer": 1, "explain": {"en": "transistor: a tiny switch that is ON for 1 and OFF for 0.", "uz": "tranzistor: YONIQ (ON) holatda 1, O'CHIQ (OFF) holatda 0 ni bildiruvchi mitti kalit."}}, {"q": {"en": "What does the keyword 'backup' mean?", "uz": "'zaxira nusxasi' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["translates the whole program into machine code before running it", "an international organisation that develops internet and web standards", "letting users perform tasks while time, errors and feedback are recorded", "a copy of files kept elsewhere in case the originals are lost"], "uz": ["dasturni ishga tushirishdan oldin butunlay mashina koditiga tarjima qiladi", "internet va veb-saytlar uchun standartlar ishlab chiqaruvchi xalqaro tashkilot", "foydalanuvchilar vazifalarni bajarishi, vaqt, xato va fikrlar yozib olinishi", "asl fayllar yo'qolsa yoki zararlansa, foydalanish uchun boshqa joyga ko'chirilgan nusxa"]}, "answer": 3, "explain": {"en": "backup: a copy of files kept elsewhere in case the originals are lost.", "uz": "zaxira nusxasi: asl fayllar yo'qolsa yoki zararlansa, foydalanish uchun boshqa joyga ko'chirilgan nusxa."}}, {"q": {"en": "What does the keyword 'character' mean?", "uz": "'belgi' kalit so'zi nimani anglatadi?"}, "opts": {"en": ["a device that turns analogue signals into digital data", "a single letter, number or symbol stored as one unit", "instructions made only of 0s and 1s that the CPU reads", "the impression and comfort a person gets using a device"], "uz": ["analog signalni raqamli ma'lumotga aylantiruvchi qurilma", "bitta harf, raqam yoki ramz, bitta birlik sifatida saqlanadi", "protsessor o'qiydigan, faqat 0 va 1 lardan iborat buyruqlar", "insonning qurilmadan foydalanishdagi taassuroti va qulayligi"]}, "answer": 1, "explain": {"en": "character: a single letter, number or symbol stored as one unit.", "uz": "belgi: bitta harf, raqam yoki ramz, bitta birlik sifatida saqlanadi."}}, {"q": {"en": "A text document has 300 characters, and each character takes 1 byte. What is its size in kilobytes (1 KB = 1000 bytes)?", "uz": "Matnli hujjatda 300 ta belgi bor, har bir belgi 1 bayt. Hajmi kilobaytda necha (1 KB = 1000 bayt)?"}, "opts": {"en": ["2.4 kilobytes", "3 kilobytes", "0.3 kilobytes", "24 kilobytes"], "uz": ["2,4 kilobayt", "3 kilobayt", "0,3 kilobayt", "24 kilobayt"]}, "answer": 2, "explain": {"en": "300 bytes ÷ 1000 = 0.3 kilobytes.", "uz": "300 bayt ÷ 1000 = 0,3 kilobayt."}}, {"q": {"en": "How many megabytes are in 12,000,000 bits? (1 MB = 1000 KB, 1 KB = 1000 bytes)", "uz": "12 000 000 bit necha megabayt? (1 MB = 1000 KB, 1 KB = 1000 bayt)"}, "opts": {"en": ["1.2 megabytes", "12 megabytes", "1.5 megabytes", "96 megabytes"], "uz": ["1,2 megabayt", "12 megabayt", "1,5 megabayt", "96 megabayt"]}, "answer": 2, "explain": {"en": "12,000,000 ÷ 8 = 1,500,000 bytes = 1.5 MB.", "uz": "12 000 000 ÷ 8 = 1 500 000 bayt = 1,5 MB."}}]}];
+
+const UI = {
+  en: {
+    brand: "Computing · Self-check quiz",
+    start_h: "Before you start",
+    start_p: "Choose what to take, enter your name if you like, and press Start. Each answer shows whether you were right and why.",
+    name: "Your name (optional)",
+    scope: "What to take",
+    all: "All 4 topics (32 questions)",
+    start: "Start quiz",
+    next: "Next question",
+    finish: "See results",
+    right: "Correct!",
+    wrong: "Not quite.",
+    answer: "The correct answer is",
+    question_of: (i, n) => "Question " + i + " of " + n,
+    result_h: "Your result",
+    well_done: (name) => "Well done, " + name + "!",
+    score: "Score",
+    pct: "correct",
+    grade: "Grade",
+    by_topic: "By topic",
+    topic: "Topic",
+    right_col: "Correct",
+    review: "Review your answers",
+    you_chose: "Your answer",
+    none: "No answer",
+    try_again: "Try again",
+    change: "Change topics",
+    scale_h: "Grading scale",
+    scale: "86–100% = 5 (Excellent) · 71–85% = 4 (Good) · 56–70% = 3 (Satisfactory) · 0–55% = 2 (Unsatisfactory)",
+    foot: "Your score is shown on this page only and is not saved.",
+    msg_hi: "Excellent. You know this material very well.",
+    msg_mid: "Good work. Review the questions you missed below.",
+    msg_lo: "Keep practising. Read the explanations below, then try again.",
+    g: { 5: "Excellent", 4: "Good", 3: "Satisfactory", 2: "Unsatisfactory" },
+  },
+  uz: {
+    brand: "6-sinf informatika · O'z-o'zini tekshirish testi",
+    start_h: "Boshlashdan oldin",
+    start_p: "Qaysi mavzudan test ishlashni tanlang, xohlasangiz ismingizni yozing va Boshlash tugmasini bosing. Har bir javobdan keyin to'g'ri yoki noto'g'ri ekani va sababi ko'rsatiladi.",
+    name: "Ismingiz (ixtiyoriy)",
+    scope: "Qaysi mavzudan",
+    all: "Barcha 4 mavzu (32 savol)",
+    start: "Testni boshlash",
+    next: "Keyingi savol",
+    finish: "Natijani ko'rish",
+    right: "To'g'ri!",
+    wrong: "Noto'g'ri.",
+    answer: "To'g'ri javob",
+    question_of: (i, n) => i + "-savol, jami " + n,
+    result_h: "Natijangiz",
+    well_done: (name) => "Barakalla, " + name + "!",
+    score: "Ball",
+    pct: "to'g'ri",
+    grade: "Baho",
+    by_topic: "Mavzular bo'yicha",
+    topic: "Mavzu",
+    right_col: "To'g'ri",
+    review: "Javoblaringizni ko'rib chiqing",
+    you_chose: "Sizning javobingiz",
+    none: "Javob berilmagan",
+    try_again: "Qayta ishlash",
+    change: "Mavzuni o'zgartirish",
+    scale_h: "Baholash shkalasi",
+    scale: "86–100% = 5 (a'lo) · 71–85% = 4 (yaxshi) · 56–70% = 3 (qoniqarli) · 0–55% = 2 (qoniqarsiz)",
+    foot: "Natijangiz faqat shu sahifada ko'rinadi va saqlanmaydi.",
+    msg_hi: "A'lo. Bu mavzuni juda yaxshi bilasiz.",
+    msg_mid: "Yaxshi natija. Xato qilgan savollaringizni pastda ko'rib chiqing.",
+    msg_lo: "Mashq qiling. Pastdagi izohlarni o'qib, qayta ishlang.",
+    g: { 5: "a'lo", 4: "yaxshi", 3: "qoniqarli", 2: "qoniqarsiz" },
+  },
+};
+
+const LETTERS = ["A", "B", "C", "D"];
+let lang = "en";
+let state = { screen: "start", name: "", scope: "all", qs: [], i: 0, answers: [] };
+
+const app = document.getElementById("app");
+
+function t(key) { return UI[lang][key]; }
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined && text !== null) e.textContent = text;
+  return e;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function gradeOf(pct) {
+  if (pct >= 86) return 5;
+  if (pct >= 71) return 4;
+  if (pct >= 56) return 3;
+  return 2;
+}
+
+function topicById(id) { return DATA.find((x) => x.id === id); }
+
+function setStaticText() {
+  document.getElementById("brand").textContent = UI[lang].brand;
+  document.getElementById("foot").textContent = UI[lang].foot;
+  document.documentElement.lang = lang === "uz" ? "uz" : "en";
+  document.getElementById("lang-en").setAttribute("aria-pressed", String(lang === "en"));
+  document.getElementById("lang-uz").setAttribute("aria-pressed", String(lang === "uz"));
+}
+
+function setLang(l) {
+  lang = l;
+  setStaticText();
+  render();
+}
+
+function render() {
+  if (state.screen === "start") renderStart();
+  else if (state.screen === "quiz") renderQuestion();
+  else renderResults();
+}
+
+function startQuiz(scope) {
+  const pool = [];
+  const topics = scope === "all" ? DATA : DATA.filter((x) => x.id === scope);
+  topics.forEach((tp) => tp.questions.forEach((q) => pool.push({ topic: tp.id, q, order: shuffle([0, 1, 2, 3]) })));
+  state = { screen: "quiz", name: state.name, scope, qs: scope === "all" ? shuffle(pool) : pool, i: 0, answers: [] };
+  render();
+}
+
+function renderStart() {
+  app.textContent = "";
+  app.append(el("h2", null, t("start_h")), el("p", "muted", t("start_p")));
+
+  const nameLabel = el("label", null, t("name"));
+  nameLabel.setAttribute("for", "name");
+  const nameInput = el("input");
+  nameInput.type = "text";
+  nameInput.id = "name";
+  nameInput.maxLength = 40;
+  nameInput.value = state.name;
+
+  const scopeLabel = el("label", null, t("scope"));
+  scopeLabel.setAttribute("for", "scope");
+  const sel = el("select");
+  sel.id = "scope";
+  const optAll = el("option", null, t("all"));
+  optAll.value = "all";
+  sel.appendChild(optAll);
+  DATA.forEach((tp) => {
+    const o = el("option", null, tp.label[lang] + " (" + tp.questions.length + ")");
+    o.value = tp.id;
+    sel.appendChild(o);
+  });
+  sel.value = state.scope;
+
+  const scale = el("div", "scale");
+  scale.append(el("strong", null, t("scale_h") + ": "), el("span", null, t("scale")));
+
+  const actions = el("div", "actions");
+  const btn = el("button", "btn", t("start"));
+  btn.type = "button";
+  btn.addEventListener("click", () => {
+    state.name = nameInput.value.trim();
+    startQuiz(sel.value);
+  });
+  actions.appendChild(btn);
+
+  app.append(nameLabel, nameInput, scopeLabel, sel, scale, actions);
+  nameInput.focus();
+}
+
+function renderQuestion() {
+  app.textContent = "";
+  const n = state.qs.length;
+  const item = state.qs[state.i];
+  const q = item.q;
+  const tp = topicById(item.topic);
+  const prev = state.answers[state.i];
+
+  const top = el("div", "progress-top");
+  top.append(el("span", null, tp.label[lang]), el("span", null, t("question_of")(state.i + 1, n)));
+  const bar = el("div", "bar");
+  const fill = el("div");
+  fill.style.width = (state.i / n * 100) + "%";
+  bar.appendChild(fill);
+
+  const h = el("h2", null, q.q[lang]);
+  const opts = el("div", "options");
+  const buttons = [];
+  const fb = el("div", "feedback");
+  const next = el("button", "btn", state.i === n - 1 ? t("finish") : t("next"));
+  next.type = "button";
+  next.disabled = !prev;
+
+  const correctPos = item.order.indexOf(q.answer);
+
+  function showAnswer(chosenPos) {
+    const orig = item.order[chosenPos];
+    const right = orig === q.answer;
+    buttons.forEach((b, k) => {
+      b.disabled = true;
+      if (k === correctPos) b.classList.add("correct");
+    });
+    if (!right) buttons[chosenPos].classList.add("wrong");
+    fb.className = "feedback show " + (right ? "good" : "bad");
+    fb.textContent = "";
+    fb.append(
+      el("strong", null, right ? t("right") : t("wrong") + " " + t("answer") + ": " + LETTERS[correctPos] + ") " + q.opts[lang][q.answer]),
+      el("span", null, q.explain[lang])
+    );
+    next.disabled = false;
+  }
+
+  item.order.forEach((orig, pos) => {
+    const b = el("button", "opt");
+    b.type = "button";
+    b.append(el("span", "letter", LETTERS[pos]), el("span", null, q.opts[lang][orig]));
+    b.addEventListener("click", () => {
+      if (state.answers[state.i]) return;
+      state.answers[state.i] = { chosenPos: pos, right: orig === q.answer, topic: item.topic };
+      showAnswer(pos);
+      next.focus();
+    });
+    buttons.push(b);
+    opts.appendChild(b);
+  });
+
+  if (prev) showAnswer(prev.chosenPos);
+
+  next.addEventListener("click", () => {
+    if (state.i === n - 1) { renderResults(); return; }
+    state.i++;
+    renderQuestion();
+  });
+
+  const actions = el("div", "actions");
+  actions.appendChild(next);
+  app.append(top, bar, h, opts, fb, actions);
+}
+
+function renderResults() {
+  app.textContent = "";
+  const n = state.qs.length;
+  const score = state.answers.filter((a) => a && a.right).length;
+  const pct = Math.round(score / n * 100);
+  const g = gradeOf(pct);
+  const msg = pct >= 86 ? t("msg_hi") : (pct >= 56 ? t("msg_mid") : t("msg_lo"));
+
+  app.append(el("h2", null, state.name ? t("well_done")(state.name) : t("result_h")));
+  app.append(el("div", "score-big", score + " / " + n));
+  app.append(el("p", "muted", pct + "% " + t("pct") + ". " + msg));
+  app.append(el("div", "grade", t("grade") + ": " + g + " · " + UI[lang].g[g]));
+
+  // Per-topic breakdown
+  const scopeTopics = state.scope === "all" ? DATA : DATA.filter((x) => x.id === state.scope);
+  const tbl = el("table");
+  const thead = el("tr");
+  thead.append(el("th", null, t("topic")), el("th", "num", t("right_col")), el("th", "num", "%"), el("th", "num", t("grade")));
+  tbl.appendChild(thead);
+  scopeTopics.forEach((tp) => {
+    const idxs = state.qs.map((it, k) => (it.topic === tp.id ? k : -1)).filter((k) => k >= 0);
+    const right = idxs.filter((k) => state.answers[k] && state.answers[k].right).length;
+    const tot = idxs.length;
+    const p = tot ? Math.round(right / tot * 100) : 0;
+    const tr = el("tr");
+    tr.append(el("td", null, tp.label[lang]), el("td", "num", right + " / " + tot), el("td", "num", p + "%"), el("td", "num", String(gradeOf(p))));
+    tbl.appendChild(tr);
+  });
+  app.append(tbl);
+
+  // Review
+  const review = el("div", "review");
+  review.append(el("h2", null, t("review")));
+  const ol = el("ol");
+  state.qs.forEach((item, k) => {
+    const q = item.q;
+    const a = state.answers[k];
+    const li = el("li");
+    li.append(el("div", "q", q.q[lang]));
+    const chosenText = a ? q.opts[lang][item.order[a.chosenPos]] : t("none");
+    const ans = el("div", "ans");
+    ans.append(
+      el("span", a && a.right ? "yes" : "no", a && a.right ? t("right") : t("wrong")),
+      el("span", null, " · " + t("you_chose") + ": " + chosenText + " · " + t("answer") + ": " + q.opts[lang][q.answer])
+    );
+    li.append(ans, el("div", "why", q.explain[lang]));
+    ol.appendChild(li);
+  });
+  review.appendChild(ol);
+  app.appendChild(review);
+
+  const actions = el("div", "actions");
+  const again = el("button", "btn", t("try_again"));
+  again.type = "button";
+  again.addEventListener("click", () => startQuiz(state.scope));
+  const change = el("button", "btn ghost", t("change"));
+  change.type = "button";
+  change.addEventListener("click", () => { state.screen = "start"; render(); });
+  actions.append(change, again);
+  app.appendChild(actions);
+}
+
+document.getElementById("lang-en").addEventListener("click", () => setLang("en"));
+document.getElementById("lang-uz").addEventListener("click", () => setLang("uz"));
+setStaticText();
+state.screen = "start";
+render();
+</script>
+</body>
+</html>

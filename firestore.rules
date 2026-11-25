@@ -1,0 +1,249 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && 'email' in request.auth.token
+        && request.auth.token.email is string
+        && request.auth.token.email.lower() in [
+          'thehonoredone.717@gmail.com',
+          'ibrohimbekxujanazarov@gmail.com'
+        ]
+        && request.auth.token.email_verified == true;
+    }
+
+    function isComputingTeacher() {
+      return isSignedIn()
+        && 'email' in request.auth.token
+        && request.auth.token.email is string
+        && request.auth.token.email.lower() == 'zarifa.xojiyeva2281@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+
+    function isMathTeacher() {
+      return isSignedIn()
+        && 'email' in request.auth.token
+        && request.auth.token.email is string
+        && request.auth.token.email.lower() == 'qoqonovtohir@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+
+    function isScienceTeacher() {
+      return isSignedIn()
+        && 'email' in request.auth.token
+        && request.auth.token.email is string
+        && request.auth.token.email.lower() == 'mohinurteshayeva19@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidSubjectId(id) {
+      return id is string && id in ['math', 'history', 'science', 'computing', 'english', 'uzbek'];
+    }
+
+    function canManageSubjectPermission(subjectId) {
+      return isAdmin()
+        || (isComputingTeacher() && subjectId == 'computing')
+        || (isMathTeacher() && subjectId == 'math')
+        || (isScienceTeacher() && subjectId == 'science');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 3. Entity Validation Blueprints (No existing()/diff() allowed here)
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'username', 'displayName', 'role', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'username', 'displayName', 'role', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && data.uid.size() >= 1
+        && data.uid.size() <= 128
+        && data.uid == userId
+        && data.username is string
+        && data.username.size() >= 3
+        && data.username.size() <= 32
+        && data.username.matches('^[a-z0-9_.]{3,32}$')
+        && data.displayName is string
+        && data.displayName.size() >= 1
+        && data.displayName.size() <= 60
+        && data.role is string
+        && data.role in ['student', 'teacher']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidQuizAttempt(data, attemptId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'username', 'studentName', 'subjectId', 'difficulty',
+          'variant', 'mode', 'score', 'total', 'percentage', 'grade',
+          'elapsedSeconds', 'completedAt', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'userId', 'username', 'studentName', 'subjectId', 'difficulty',
+          'variant', 'mode', 'score', 'total', 'percentage', 'grade',
+          'elapsedSeconds', 'completedAt', 'cheated', 'createdAt'
+        ])
+        && data.id is string
+        && data.id.size() >= 1
+        && data.id.size() <= 128
+        && data.id == attemptId
+        && data.userId is string
+        && data.userId.size() >= 1
+        && data.userId.size() <= 128
+        && data.userId == request.auth.uid
+        && data.username is string
+        && data.username.size() >= 3
+        && data.username.size() <= 32
+        && data.username.matches('^[a-z0-9_.]{3,32}$')
+        && data.studentName is string
+        && data.studentName.size() >= 1
+        && data.studentName.size() <= 60
+        && data.subjectId is string
+        && data.subjectId in ['math', 'history', 'science', 'computing', 'english', 'uzbek']
+        && data.difficulty is string
+        && data.difficulty in ['easy', 'medium', 'hard']
+        && data.variant is string
+        && data.variant.size() >= 1
+        && data.variant.size() <= 24
+        && data.mode is string
+        && data.mode in ['practice', 'exam']
+        && data.score is int
+        && data.score >= 0
+        && data.score <= 25
+        && data.total is int
+        && data.total == 25
+        && data.percentage is int
+        && data.percentage >= 0
+        && data.percentage <= 100
+        && data.grade is int
+        && data.grade in [2, 3, 4, 5]
+        && data.elapsedSeconds is int
+        && data.elapsedSeconds >= 0
+        && data.elapsedSeconds <= 86400
+        && data.completedAt is string
+        && data.completedAt.size() >= 10
+        && data.completedAt.size() <= 40
+        && (!('cheated' in data) || data.cheated is bool)
+        && data.createdAt is timestamp
+        && data.createdAt == request.time;
+    }
+
+    function isValidSubjectPermission(data, subjectId) {
+      return data.keys().hasAll(['subjectId', 'prohibited', 'updatedByUid', 'updatedByName', 'updatedAt'])
+        && data.keys().hasOnly(['subjectId', 'prohibited', 'updatedByUid', 'updatedByName', 'updatedAt'])
+        && data.subjectId is string
+        && isValidSubjectId(data.subjectId)
+        && data.subjectId == subjectId
+        && data.prohibited is bool
+        && data.updatedByUid is string
+        && data.updatedByUid.size() >= 1
+        && data.updatedByUid.size() <= 128
+        && data.updatedByUid == request.auth.uid
+        && data.updatedByName is string
+        && data.updatedByName.size() >= 1
+        && data.updatedByName.size() <= 60
+        && data.updatedAt is timestamp
+        && data.updatedAt == request.time;
+    }
+
+    // 4. Collection Match Blocks
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+
+      allow create: if isSignedIn()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && (incoming().role == 'student' || isAdmin() || ((isComputingTeacher() || isMathTeacher() || isScienceTeacher()) && incoming().role == 'teacher'));
+
+      allow update: if isSignedIn()
+        && isValidId(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (isOwner(userId)
+            && incoming().role == existing().role
+            && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'updatedAt']))
+          || (isOwner(userId)
+            && (isComputingTeacher() || isMathTeacher() || isScienceTeacher())
+            && incoming().role == 'teacher'
+            && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'role', 'updatedAt']))
+          || (isAdmin()
+            && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'username', 'role', 'updatedAt']))
+        );
+
+      allow delete: if isAdmin() && isValidId(userId);
+    }
+
+    match /attempts/{attemptId} {
+      allow get: if isValidId(attemptId) && (
+        isAdmin()
+        || (isComputingTeacher() && existing().subjectId == 'computing')
+        || (isMathTeacher() && existing().subjectId == 'math')
+        || (isScienceTeacher() && existing().subjectId == 'science')
+        || (isSignedIn() && existing().userId == request.auth.uid)
+      );
+      allow list: if isAdmin()
+        || (isComputingTeacher() && resource.data.subjectId == 'computing')
+        || (isMathTeacher() && resource.data.subjectId == 'math')
+        || (isScienceTeacher() && resource.data.subjectId == 'science')
+        || (isSignedIn() && resource.data.userId == request.auth.uid);
+
+      allow create: if isSignedIn()
+        && isValidId(attemptId)
+        && isValidQuizAttempt(incoming(), attemptId)
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(attemptId);
+    }
+
+    match /subjectPermissions/{subjectId} {
+      allow get: if isSignedIn() && isValidSubjectId(subjectId);
+      allow list: if false;
+
+      allow create: if isSignedIn()
+        && isValidSubjectId(subjectId)
+        && canManageSubjectPermission(subjectId)
+        && isValidSubjectPermission(incoming(), subjectId);
+
+      allow update: if isSignedIn()
+        && isValidSubjectId(subjectId)
+        && canManageSubjectPermission(subjectId)
+        && isValidSubjectPermission(incoming(), subjectId)
+        && incoming().subjectId == existing().subjectId
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'prohibited', 'updatedByUid', 'updatedByName', 'updatedAt'
+        ]);
+
+      allow delete: if isAdmin() && isValidSubjectId(subjectId);
+    }
+  }
+}

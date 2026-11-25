@@ -1,0 +1,179 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Registered student or teacher profile for the Grade 7 ChSB platform",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "username": {
+          "type": "string",
+          "description": "Normalized lowercase username",
+          "minLength": 3,
+          "maxLength": 32,
+          "pattern": "^[a-z0-9_.]{3,32}$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Student or teacher display name",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "role": {
+          "type": "string",
+          "enum": ["student", "teacher"],
+          "description": "Access role in the platform"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Account creation server timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last profile update server timestamp"
+        }
+      },
+      "required": ["uid", "username", "displayName", "role", "createdAt", "updatedAt"]
+    },
+    "QuizAttempt": {
+      "title": "QuizAttempt",
+      "description": "Immutable completed 25-question ChSB quiz attempt record",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "username": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 32,
+          "pattern": "^[a-z0-9_.]{3,32}$"
+        },
+        "studentName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "subjectId": {
+          "type": "string",
+          "enum": ["math", "history", "science", "computing", "english", "uzbek"]
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["easy", "medium", "hard"]
+        },
+        "variant": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["practice", "exam"]
+        },
+        "score": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "percentage": {
+          "type": "integer"
+        },
+        "grade": {
+          "type": "integer"
+        },
+        "elapsedSeconds": {
+          "type": "integer"
+        },
+        "completedAt": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 40
+        },
+        "cheated": {
+          "type": "boolean",
+          "description": "True when test ended with 0 warnings left and a forced 0 score"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "username",
+        "studentName",
+        "subjectId",
+        "difficulty",
+        "variant",
+        "mode",
+        "score",
+        "total",
+        "percentage",
+        "grade",
+        "elapsedSeconds",
+        "completedAt",
+        "createdAt"
+      ]
+    },
+    "SubjectPermission": {
+      "title": "SubjectPermission",
+      "description": "Per-subject Allow / Prohibit access toggle managed by subject teachers and admin",
+      "type": "object",
+      "properties": {
+        "subjectId": {
+          "type": "string",
+          "enum": ["math", "history", "science", "computing", "english", "uzbek"]
+        },
+        "prohibited": {
+          "type": "boolean"
+        },
+        "updatedByUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "updatedByName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["subjectId", "prohibited", "updatedByUid", "updatedByName", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profiles partitioned by Firebase Auth UID"
+    },
+    "/attempts/{attemptId}": {
+      "schema": { "$ref": "#/entities/QuizAttempt" },
+      "description": "Completed quiz attempts visible to the student owner and verified teacher/admin"
+    },
+    "/subjectPermissions/{subjectId}": {
+      "schema": { "$ref": "#/entities/SubjectPermission" },
+      "description": "Per-subject Allow/Prohibit state controlled by subject teachers (own subject) and admin (all subjects)"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Grade 7 ChSB Prep Platform",
+  "description": "Grade 7 Choraklik Summativ Baholash (ChSB) interactive exam preparation platform covering Math, History, Science, Computing, English, and Ona tili va Adabiyot with 5 variants of 25 questions per subject.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
